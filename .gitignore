@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+escapeRoom.Rproj
+.Rdata
+.httr-oauth
+.DS_Store
+.quarto
+inst/IAmails/www/*.wav
+inst/IAmails/.env.R
+inst/IAmails/google_key.json
+inst/IAmails/google_token
+inst/IAmails/token_gs4
