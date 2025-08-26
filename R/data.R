@@ -6,8 +6,8 @@ load_db_scans <- function(id_drive){
   googlesheets4::read_sheet(id_drive,sheet = "db_scans") %>%
     mutate(timer = as.numeric(timer))
 }
-load_db_IA <- function(id_drive){
-  googlesheets4::read_sheet(id_drive,sheet = "db_IA") %>%
+load_db_AI <- function(id_drive){
+  googlesheets4::read_sheet(id_drive,sheet = "db_AI") %>%
     mutate(timer = as.numeric(timer))
 }
 
@@ -19,8 +19,8 @@ info_scans <- function(values){
   values$db_scans %>% filter(CD_admin == "init")
 }
 
-info_IA <- function(values){
-  values$db_IA %>% filter(CD_admin == "init")
+info_AI <- function(values){
+  values$db_AI %>% filter(CD_admin == "init")
 }
 
 actu_enigmes <- function(values){
@@ -35,6 +35,6 @@ actu_scans <- function(values){
     arrange(ID)
 }
 
-actu_IA <- function(values){
-  values$db_IA %>% filter(CD_admin == "action")
+actu_AI <- function(values){
+  values$db_AI %>% filter(CD_admin == "action")
 }

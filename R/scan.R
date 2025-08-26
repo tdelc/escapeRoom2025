@@ -92,20 +92,25 @@ EcranScanServer <- function(id,values,local) {
         }
       })
 
+      # Nombre de scans
+      observe({
+        actu_scans <- actu_scans(values) %>%
+          select(ID,FL_Valid) %>%
+          left_join(info_scans(values) %>% select(ID,Texte))
+
+        updateProgressBar(
+          session = session,
+          id = "scan_global_progress",
+          value = sum(actu_scans$FL_Valid), total = nrow(actu_scans)
+        )
+      })
+
       # Listing des scans
       output$listing_scan <- renderText({
 
         actu_scans <- actu_scans(values) %>%
           select(ID,FL_Valid) %>%
           left_join(info_scans(values) %>% select(ID,Texte))
-
-        nb_scans <- sum(actu_scans$FL_Valid)
-
-        updateProgressBar(
-          session = session,
-          id = "scan_global_progress",
-          value = nb_scans, total = nrow(actu_scans)
-        )
 
         actu_scans <- actu_scans %>%
           mutate(Texte_HTML = if_else(FL_Valid == 1,
@@ -132,9 +137,18 @@ EcranScanServer <- function(id,values,local) {
       observe({
         updateProgressBar(
           session = session,
-          id = "mails_progress",
-          value = values$nb_mails,
-          total = 11000000
+          id = "mails_load_progress",
+          value = values$nb_mails_load,
+          total = values$nb_mails_tot
+        )
+      })
+
+      observe({
+        updateProgressBar(
+          session = session,
+          id = "mails_send_progress",
+          value = values$nb_mails_send,
+          total = values$nb_mails_load
         )
       })
 
@@ -176,7 +190,7 @@ EcranScanUI <- function(id,values,local) {
   } else if (local$userType == "L"){
 
 
-    style_scan <- if (values$active_mails) {
+    style_scan <- if (values$active_mails_send) {
       style_list("#470000","#ff3333")
     } else {
       style_list("#004700","#33ff33")
@@ -195,10 +209,15 @@ EcranScanUI <- function(id,values,local) {
                           div(id = "digitalClock", class = "digital-clock", "--:--:--")
              ))),
           div(class = "card",
+              div(class = "panel-title", "Avancement du chargement des mails"),
+              div(class = "progress",
+                progressBar(id = ns("mails_load_progress"),value = 0,
+                            total = 1,display_pct = TRUE
+                  )),
               div(class = "panel-title", "Avancement des envois de mails"),
               div(class = "progress",
-                progressBar(id = ns("mails_progress"),value = 0,
-                  total = 11000000,display_pct = TRUE
+                  progressBar(id = ns("mails_send_progress"),value = 0,
+                              total = 1,display_pct = TRUE
                   )),
               div(id = "progressLabel", style = "margin-top:6px;font-size:1.05em;"),
               div(class = "panel-title", "Documents manquants à scanner"),

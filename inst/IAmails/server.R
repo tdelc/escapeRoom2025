@@ -11,6 +11,7 @@ library(TheOpenAIR)
 library(text2speech)
 library(googleLanguageR)
 library(later)
+library(sortable)
 
 source(".env.R")
 
@@ -22,6 +23,9 @@ gs4_auth(token=token_gs4)
 # OpenAI
 openai_api_key(id_chatgpt)
 
+set_chatlog(chatlog_id = "Question_perso",initial_content = personality_AI())
+set_chatlog(chatlog_id = "Fin_du_jeu",initial_content = "")
+
 # numéro de la question
 # i_etape <- reactiveVal(1)
 
@@ -31,18 +35,21 @@ text <- reactiveVal("")
 # DB
 values <- reactiveValues(db_enigmes=load_db_enigmes(id_drive),
                          db_scans=load_db_scans(id_drive),
-                         db_IA=load_db_IA(id_drive),
+                         db_AI=load_db_AI(id_drive),
                          i_etape = 1,
                          nb_scan = 0,
                          message_vocal = "",
                          texte_output = "",
                          text_scan = "",
-                         text_IA_admin = "",
-                         text_IA = "",
+                         text_AI_admin = "",
+                         text_AI = "",
                          id_drive = id_drive,
                          id_chatgpt = id_chatgpt,
-                         nb_mails = 0,
-                         active_mails = FALSE,
+                         nb_mails_tot = 11000000,
+                         nb_mails_load = 0,
+                         nb_mails_send = 0,
+                         active_mails_load = FALSE,
+                         active_mails_send = FALSE
                          )
 
 shinyServer(function(input, output, session) {
@@ -74,23 +81,13 @@ shinyServer(function(input, output, session) {
       # id <- paste0("EcranQR",local$userType,local$userEcran)
       # EcranQRServer(id,values,local)
       EcranQRServer("EcranQR",values,local)
-      EcranIAServer("EcranIA",values)
-
+      EcranAIServer("EcranAI",values)
       EcranSourceServer("EcranSource",values,local)
     })
 
   })
 
-  # Gestion de l'envois de mails (timer de l'escape room)
-  # Que dans l'écran de listing de scan
-  observe({
-    if (local$userType == "L" & values$active_mails){
-      invalidateLater(1000*runif(1,1,60), session)
-      isolate({
-        values$nb_mails <- values$nb_mails + runif(1,10,1000)
-      })
-    }
-  })
+
 
   ### UI
 
@@ -117,13 +114,13 @@ shinyServer(function(input, output, session) {
   })
 
   # Chat
-  output$IA <- renderUI({
-    if (local$userType == "IA")
-      EcranIAUI("EcranIA")
+  output$AI <- renderUI({
+    if (local$userType == "AI")
+      EcranAIUI("EcranAI")
   })
 
   # Source
-  output$IA <- renderUI({
+  output$source <- renderUI({
     if (local$userType == "O")
       EcranSourceUI("EcranSource")
   })

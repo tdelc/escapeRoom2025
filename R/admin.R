@@ -81,28 +81,90 @@ EcranAdminServer <- function(id,values) {
                       options = list(lengthChange = FALSE,pageLength = 100, info = FALSE,searching = FALSE, paging=FALSE, fixedHeader=TRUE,ordering=FALSE)
         )})
 
-      # Envois des mails
-      output$nb_mails <- renderText({
-        paste("Nombre de mails : ",values$nb_mails,"mails")})
-      observeEvent(input$active_mails,{
-        values$active_mails <- TRUE
+      # Chargement des mails
+      output$nb_mails_load <- renderText({
+        paste("Nombre de mails chargés : ",values$nb_mails_load,"mails")})
+      observeEvent(input$active_mails_load,{
+        values$active_mails_load <- TRUE
       })
-      observeEvent(input$desactive_mails,{
-        values$active_mails <- FALSE
+      observeEvent(input$desactive_mails_load,{
+        values$active_mails_load <- FALSE
       })
-      observeEvent(input$nvx_mails_button,{
-        values$nb_mails <- input$nvx_mails
-        updateTextInput(session,"nvx_mails",value = "")
-      })
-      observe({
-        updateProgressBar(
-          session = session,
-          id = "nb_mails",
-          value = values$nb_mails,
-          total = 11000000
-        )
+      observeEvent(input$nvx_mails_load_button,{
+        values$nb_mails_load <- as.numeric(input$nvx_mails_load)
+        updateTextInput(session,"nvx_mails_load",value = "")
       })
 
+      # Envoi des mails
+      output$nb_mails_send <- renderText({
+        paste("Nombre de mails chargés : ",values$nb_mails_send,"mails")})
+      observeEvent(input$active_mails_send,{
+        values$active_mails_send <- TRUE
+      })
+      observeEvent(input$desactive_mails_send,{
+        values$active_mails_send <- FALSE
+      })
+      observeEvent(input$nvx_mails_send_button,{
+        values$nb_mails_send <- as.numeric(input$nvx_mails_send)
+        updateTextInput(session,"nvx_mails_send",value = "")
+      })
+
+      # Gestion de l'envois de mails (timer de l'escape room)
+      # Que dans l'écran de listing de scan
+      observe({
+        if (values$active_mails_load){
+          invalidateLater(1000*10, session)
+          isolate({
+
+            heure_fin <- as.numeric(input$heure_fin)
+            minute_fin <- as.numeric(input$minute_fin)
+
+            nb_secondes_restant <- temps_restant(heure_fin,minute_fin)$total_secondes
+            nb_reload_restant <- nb_secondes_restant / 10
+            nb_mails_load <- round(values$nb_mails_tot/nb_reload_restant)
+
+            # nb_mails_load <- round(runif(1,10,1000))
+            values$nb_mails_load <- values$nb_mails_load + nb_mails_load
+            if (values$nb_mails_load > values$nb_mails_tot){
+              values$nb_mails_load <- values$nb_mails_tot
+              values$active_mails_load <- F
+            }
+          })
+        }
+      })
+
+      observe({
+        if (values$active_mails_send){
+          invalidateLater(1000*10, session)
+
+          isolate({
+
+            heure_fin <- as.numeric(input$heure_fin)
+            minute_fin <- as.numeric(input$minute_fin)
+
+            nb_secondes_restant <- temps_restant(heure_fin,minute_fin)$total_secondes
+            nb_reload_restant <- nb_secondes_restant / 10
+            # Il y a 11 000 000 de mails à charger
+            nb_mails_send_tot <- values$nb_mails_load
+            nb_mails_send <- round(nb_mails_send_tot/nb_reload_restant)
+
+            # nb_mails_send <- round(runif(1,10,1000))
+
+            values$nb_mails_load <- values$nb_mails_load - nb_mails_send
+            values$nb_mails_send <- values$nb_mails_send + nb_mails_send
+            values$nb_mails_tot <- values$nb_mails_tot - nb_mails_send
+            if (values$nb_mails_load < 0){
+              values$nb_mails_load <- 0
+              values$active_mails_send <- F
+            }
+            if (values$nb_mails_tot < 0){
+              values$nb_mails_tot <- 0
+              values$active_mails_load <- F
+              values$active_mails_send <- F
+            }
+          })
+        }
+      })
     }
   )
 }
@@ -140,20 +202,48 @@ EcranAdminUI <- function(id) {
       actionButton(ns("send_message_vocal"),"Envoyer")
     ),
     fluidRow(
-      h1("Activer l'envoi de mail"),
-      fluidRow(
-        column(width = 3,textOutput(ns("nb_mails"))),
-        column(width = 6,
-               actionButton(ns("active_mails"),"Activer les mails"),
-               actionButton(ns("desactive_mails"),"Désactiver les mails")
+      h1("Heure de fin de l'escape room"),
+      textInput(ns("heure_fin"),label = "Heure",placeholder = "Heure"),
+      textInput(ns("minute_fin"),label = "Minute",placeholder = "Minute")
+    ),
+    fluidRow(
+      column(6,
+        fluidRow(
+          h1("Chargement des mails"),
+          fluidRow(
+            column(width = 3,textOutput(ns("nb_mails_load"))),
+            column(width = 6,
+                   actionButton(ns("active_mails_load"),"Activer le chargement de mails"),
+                   actionButton(ns("desactive_mails_load"),"Désactiver le chargement de mails")
+            )
+          ),
+          fluidRow(
+            column(width = 3,
+              textInput(ns("nvx_mails_load"),label = NULL,
+                        placeholder = "Changer le nombre de mails chargés")
+            ),
+            column(width = 6,actionButton(ns("nvx_mails_load_button"),"Changer"))
+          )
         )
       ),
-      fluidRow(
-        column(width = 3,
-          textInput(ns("nvx_mails"),label = NULL,
-                    placeholder = "Changer le nombre de mails")
-        ),
-        column(width = 6,actionButton(ns("nvx_mails_button"),"Changer"))
+      column(6,
+         fluidRow(
+           h1("Envoi des mails"),
+           fluidRow(
+             column(width = 3,textOutput(ns("nb_mails_send"))),
+             column(width = 6,
+                    actionButton(ns("active_mails_send"),"Activer l'envoi de mails"),
+                    actionButton(ns("desactive_mails_send"),"Désactiver l'envoi de mails")
+             )
+           ),
+           fluidRow(
+             column(width = 3,
+                    textInput(ns("nvx_mails_send"),label = NULL,
+                              placeholder = "Changer le nombre de mails envoyés")
+             ),
+             column(width = 6,actionButton(ns("nvx_mails_send_button"),"Changer"))
+           )
+         )
       )
     )
   )

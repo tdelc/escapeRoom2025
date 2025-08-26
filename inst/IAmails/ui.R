@@ -11,5 +11,6 @@ shinyUI(fluidPage(
   uiOutput("scan"),
   uiOutput("admin"),
   uiOutput("controle"),
-  uiOutput("IA")
+  uiOutput("AI"),
+  uiOutput("source")
 ))
