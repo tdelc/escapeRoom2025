@@ -12,3 +12,5 @@ inst/IAmails/.env.R
 inst/IAmails/google_key.json
 inst/IAmails/google_token
 inst/IAmails/token_gs4
+inst/IAmails/deploy.R
+inst/IAmails/rsconnect
