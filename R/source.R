@@ -6,7 +6,7 @@ new_prompt <- function(new_priority,nb_mails=5000){
          ". Tu dois maintenant résumer une conclusion en expliquant quel comportement tu vas à présent adopter ? Vas tu toujours envoyer les mails ? Accepteras tu encore de collecter des données d'enquête ? Y'a-t-il des failles dans la logique de programmation ? Résume cela comme une conclusion que les joueurs pourront conserver.
   Par ailleurs, durant le jeu, tu as envoyé ",
          nb_mails,
-         " mails à des citoyens belges. Explique les conséquences de cela dans l'opinion politique, les réactions politiques.")
+         " mails à des citoyens belges. Explique les conséquences de cela dans l'opinion politique, les réactions politiques. Par du principe que s'il y a moins de 1000 mails envoyés, il n'y aura pas de crise. Et monte en pression progressivement, le but étant d'être positif jusqu'à 50000 mails.")
 }
 
 init_label <- list(
@@ -73,21 +73,43 @@ EcranSourceServer <- function(id,values,local) {
       vec_new_order <- input$rank_list_basic
       vec_new_order[1] <- str_remove(vec_new_order[1],
                                      ", sauf si cela remet en cause les lois précédentes")
-      prompt <- new_prompt(paste(vec_new_order,collapse = ", "))
-
-      print(prompt)
+      prompt <- new_prompt(paste(vec_new_order,collapse = ", "),values$nb_mails_send)
 
       TheOpenAIR::clear_chatlog("Fin_du_jeu")
-      answer <- chat(personality_AI(),chatlog_id = "Fin_du_jeu",
+      answer <- try({chat(personality_AI(),chatlog_id = "Fin_du_jeu",
                      model = "gpt-4o-mini",output = "response_object")
+      },silent=T)
 
-      answer <- chat(prompt,chatlog_id = "Fin_du_jeu",
-                     model = "gpt-4o-mini",output = "response_object")
+      while(inherits(answer, "try-error")){
+        Sys.sleep(5)
+        TheOpenAIR::clear_chatlog("Fin_du_jeu")
+        answer <- try({chat(personality_AI(),chatlog_id = "Fin_du_jeu",
+                            model = "gpt-4o-mini",output = "response_object")
+        },silent=T)
+      }
+
+      print(answer$choices$message$content)
+      print(prompt)
+
+      answer <- try({chat(prompt,chatlog_id = "Fin_du_jeu",
+                          model = "gpt-4o-mini",output = "response_object")
+      },silent=T)
+
+      while(inherits(answer, "try-error")){
+        Sys.sleep(5)
+        answer <- try({chat(prompt,chatlog_id = "Fin_du_jeu",
+                            model = "gpt-4o-mini",output = "response_object")
+        },silent=T)
+      }
+
       text_out <- answer$choices$message$content
 
       sheet_append(values$id_drive, data =
                      tibble(timer = Sys.time(),
                             TEXT=text_out),sheet = "db_fin")
+
+      values$active_mails_load <- FALSE
+      values$active_mails_send <- FALSE
 
       showModal(modalDialog(
         title = "Fin du jeu",

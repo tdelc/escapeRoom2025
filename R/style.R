@@ -54,6 +54,10 @@ style_global <- function(){
     .center_text {
       text-align: center;
     }
+    .glyphicon-ok {color:#2b8ee5}
+    .glyphicon-remove {color:#e5413b}
+    .glyphicon-exclamation-sign {color:#e5413b}
+    .glyphicon-flag, .glyphicon-trash {color:#28b728}
   ")))
 }
 

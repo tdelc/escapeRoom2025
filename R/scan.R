@@ -92,19 +92,6 @@ EcranScanServer <- function(id,values,local) {
         }
       })
 
-      # Nombre de scans
-      observe({
-        actu_scans <- actu_scans(values) %>%
-          select(ID,FL_Valid) %>%
-          left_join(info_scans(values) %>% select(ID,Texte))
-
-        updateProgressBar(
-          session = session,
-          id = "scan_global_progress",
-          value = sum(actu_scans$FL_Valid), total = nrow(actu_scans)
-        )
-      })
-
       # Listing des scans
       output$listing_scan <- renderText({
 
@@ -133,23 +120,35 @@ EcranScanServer <- function(id,values,local) {
         return(HTML(html_out))
       })
 
-      # Gestion des mails
-      observe({
-        updateProgressBar(
-          session = session,
-          id = "mails_load_progress",
-          value = values$nb_mails_load,
-          total = values$nb_mails_tot
-        )
+      # Gestion des mails et des scans
+      output$nb_mails_load <- renderText({
+        pc_mails_load <- round(100*values$nb_mails_load/values$nb_mails_tot)
+        paste0(
+          format(values$nb_mails_load, big.mark = " ", scientific = F), " / ",
+          format(values$nb_mails_tot, big.mark = " ", scientific = F), " (",
+          pc_mails_load,"%)")
       })
 
-      observe({
-        updateProgressBar(
-          session = session,
-          id = "mails_send_progress",
-          value = values$nb_mails_send,
-          total = values$nb_mails_load
-        )
+      output$nb_mails_send <- renderText({
+        pc_mails_send <- round(100*values$nb_mails_send/values$nb_mails_load)
+        if (values$nb_mails_load == 0) pc_mails_send <- 0
+        paste0(
+          format(values$nb_mails_send, big.mark = " ", scientific = F), " / ",
+          format(values$nb_mails_load, big.mark = " ", scientific = F), " (",
+          pc_mails_send,"%)")
+      })
+
+      # Nombre de scans
+      output$nb_scans <- renderText({
+
+        actu_scans <- actu_scans(values) %>%
+          select(ID,FL_Valid) %>%
+          left_join(info_scans(values) %>% select(ID,Texte))
+
+        paste0(
+          sum(actu_scans$FL_Valid), " / ",
+          nrow(actu_scans), " (",
+          round(100*sum(actu_scans$FL_Valid)/nrow(actu_scans)),"%)")
       })
 
     }
@@ -209,23 +208,12 @@ EcranScanUI <- function(id,values,local) {
                           div(id = "digitalClock", class = "digital-clock", "--:--:--")
              ))),
           div(class = "card",
-              div(class = "panel-title", "Avancement du chargement des mails"),
-              div(class = "progress",
-                progressBar(id = ns("mails_load_progress"),value = 0,
-                            total = 1,display_pct = TRUE
-                  )),
-              div(class = "panel-title", "Avancement des envois de mails"),
-              div(class = "progress",
-                  progressBar(id = ns("mails_send_progress"),value = 0,
-                              total = 1,display_pct = TRUE
-                  )),
-              div(id = "progressLabel", style = "margin-top:6px;font-size:1.05em;"),
-              div(class = "panel-title", "Documents manquants à scanner"),
-              div(class = "progress",
-                  progressBar(
-                    id = ns("scan_global_progress"),value = 0,
-                    total = nrow(info_scans(values)),display_pct = TRUE
-                  ))
+              div(class = "panel-title", "Avancement du chargement des mails :"),
+              div(class = "panel-title",textOutput(ns("nb_mails_load"))),
+              div(class = "panel-title", "Avancement des envois de mails :"),
+              div(class = "panel-title",textOutput(ns("nb_mails_send"))),
+              div(class = "panel-title", "Documents manquants à scanner :"),
+              div(class = "panel-title",textOutput(ns("nb_scans"))),
           )
           ),
       column(8,

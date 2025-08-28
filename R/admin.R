@@ -5,20 +5,26 @@ EcranAdminServer <- function(id,values) {
     id,
     function(input, output, session) {
 
+      updateTextInput(session,"heure_fin",value = lubridate::hour(Sys.time())+1)
+      updateTextInput(session,"minute_fin",value = lubridate::minute(Sys.time()))
+
+      observeEvent(input$send_message_text,{
+        values$text_AI_admin <- input$message_text
+      })
+
       observeEvent(input$send_message_vocal,{
-        values$text_IA_admin <- input$message_vocal
-        # text_IA_admin(input$message_vocal)
+        values$vocal_AI_admin <- input$message_vocal
       })
 
       observeEvent(input$reboot, {
         sheet_write(values$id_drive, data = info_enigmes(values),sheet = "db_enigmes")
         sheet_write(values$id_drive, data = info_scans(values),sheet = "db_scans")
-        sheet_write(values$id_drive, data = info_IA(values),sheet = "db_IA")
+        sheet_write(values$id_drive, data = info_AI(values),sheet = "db_AI")
         values$i_etape <- 1
         values$nb_scan <- 0
         values$db_enigmes <- load_db_enigmes(values$id_drive)
         values$db_scans <- load_db_scans(values$id_drive)
-        values$db_IA <- load_db_IA(values$id_drive)
+        values$db_AI <- load_db_AI(values$id_drive)
       })
 
       observeEvent(input$avancer,{
@@ -56,12 +62,12 @@ EcranAdminServer <- function(id,values) {
           select(ID_bloc,ID_step,ID_enigme,Ecran_Question = Ecran)
 
         synthese_indices <- actu_enigmes(values) %>%
-          filter(Type == "Indice") %>%
+          filter(Type == "Question") %>%
           select(ID_bloc,ID_step,ID_enigme,Ecran,FL_Valid) %>%
           mutate(FL_Valid = case_when(
             FL_Valid == 1 ~  gicon("ok"),
             FL_Valid == 0 ~ gicon("remove"),
-            TRUE ~ ""
+            TRUE ~ gicon("remove")
           )) %>%
           pivot_wider(id_cols = c(ID_bloc,ID_step,ID_enigme),
                       names_from = Ecran,
@@ -78,12 +84,45 @@ EcranAdminServer <- function(id,values) {
                       rownames = FALSE,
                       escape = FALSE,
                       extensions = c('FixedColumns',"FixedHeader"),
-                      options = list(lengthChange = FALSE,pageLength = 100, info = FALSE,searching = FALSE, paging=FALSE, fixedHeader=TRUE,ordering=FALSE)
+                      options = list(lengthChange = FALSE,pageLength = 100,
+                                     info = FALSE,searching = FALSE,
+                                     paging=FALSE, fixedHeader=TRUE,ordering=FALSE)
         )})
 
-      # Chargement des mails
+      # Gestion des mails et des scans
       output$nb_mails_load <- renderText({
-        paste("Nombre de mails chargés : ",values$nb_mails_load,"mails")})
+        pc_mails_load <- round(100*values$nb_mails_load/values$nb_mails_tot)
+        if (values$active_mails_load) check_mails_load <- " (active)"
+        else check_mails_load <- ""
+        paste0("Avancement du chargement des mails : ",
+          format(values$nb_mails_load, big.mark = " ", scientific = F), " / ",
+          format(values$nb_mails_tot, big.mark = " ", scientific = F), " (",
+          pc_mails_load,"%) ",check_mails_load)
+      })
+
+      output$nb_mails_send <- renderText({
+        pc_mails_send <- round(100*values$nb_mails_send/values$nb_mails_load)
+        if (values$active_mails_send) check_mails_send <- " (active)"
+        else check_mails_send <- ""
+        if (values$nb_mails_load == 0) pc_mails_send <- 0
+        paste0("Avancement des envois de mails : ",
+          format(values$nb_mails_send, big.mark = " ", scientific = F), " / ",
+          format(values$nb_mails_load, big.mark = " ", scientific = F), " (",
+          pc_mails_send,"%) ",check_mails_send)
+      })
+
+      # Nombre de scans
+      output$nb_scans <- renderText({
+        actu_scans <- actu_scans(values) %>% select(ID,FL_Valid) %>%
+          left_join(info_scans(values) %>% select(ID,Texte))
+
+        paste0("Documents manquants à scanner : ",
+          sum(actu_scans$FL_Valid), " / ",
+          nrow(actu_scans), " (",
+          round(100*sum(actu_scans$FL_Valid)/nrow(actu_scans)),"%)")
+      })
+
+      # Chargement des mails
       observeEvent(input$active_mails_load,{
         values$active_mails_load <- TRUE
       })
@@ -96,8 +135,6 @@ EcranAdminServer <- function(id,values) {
       })
 
       # Envoi des mails
-      output$nb_mails_send <- renderText({
-        paste("Nombre de mails chargés : ",values$nb_mails_send,"mails")})
       observeEvent(input$active_mails_send,{
         values$active_mails_send <- TRUE
       })
@@ -112,58 +149,38 @@ EcranAdminServer <- function(id,values) {
       # Gestion de l'envois de mails (timer de l'escape room)
       # Que dans l'écran de listing de scan
       observe({
-        if (values$active_mails_load){
-          invalidateLater(1000*10, session)
-          isolate({
+        invalidateLater(1000*5, session)
+        isolate({
+          heure_fin <- as.numeric(input$heure_fin)
+          minute_fin <- as.numeric(input$minute_fin)
+          nb_secondes_restant <- temps_restant(heure_fin,minute_fin)$total_secondes
+          nb_reload_restant <- nb_secondes_restant / 5
 
-            heure_fin <- as.numeric(input$heure_fin)
-            minute_fin <- as.numeric(input$minute_fin)
+          nb_mails_load <- round(values$nb_mails_tot/nb_reload_restant)
+          nb_mails_send <- round(values$nb_mails_load/nb_reload_restant)
 
-            nb_secondes_restant <- temps_restant(heure_fin,minute_fin)$total_secondes
-            nb_reload_restant <- nb_secondes_restant / 10
-            nb_mails_load <- round(values$nb_mails_tot/nb_reload_restant)
+          if (!values$active_mails_load) nb_mails_load <- 0
+          if (!values$active_mails_send) nb_mails_send <- 0
 
-            # nb_mails_load <- round(runif(1,10,1000))
-            values$nb_mails_load <- values$nb_mails_load + nb_mails_load
-            if (values$nb_mails_load > values$nb_mails_tot){
-              values$nb_mails_load <- values$nb_mails_tot
-              values$active_mails_load <- F
-            }
-          })
-        }
-      })
+          values$nb_mails_load <- values$nb_mails_load + nb_mails_load
+          values$nb_mails_load <- values$nb_mails_load - nb_mails_send
+          values$nb_mails_send <- values$nb_mails_send + nb_mails_send
+          values$nb_mails_tot <- values$nb_mails_tot - nb_mails_send
 
-      observe({
-        if (values$active_mails_send){
-          invalidateLater(1000*10, session)
-
-          isolate({
-
-            heure_fin <- as.numeric(input$heure_fin)
-            minute_fin <- as.numeric(input$minute_fin)
-
-            nb_secondes_restant <- temps_restant(heure_fin,minute_fin)$total_secondes
-            nb_reload_restant <- nb_secondes_restant / 10
-            # Il y a 11 000 000 de mails à charger
-            nb_mails_send_tot <- values$nb_mails_load
-            nb_mails_send <- round(nb_mails_send_tot/nb_reload_restant)
-
-            # nb_mails_send <- round(runif(1,10,1000))
-
-            values$nb_mails_load <- values$nb_mails_load - nb_mails_send
-            values$nb_mails_send <- values$nb_mails_send + nb_mails_send
-            values$nb_mails_tot <- values$nb_mails_tot - nb_mails_send
-            if (values$nb_mails_load < 0){
-              values$nb_mails_load <- 0
-              values$active_mails_send <- F
-            }
-            if (values$nb_mails_tot < 0){
-              values$nb_mails_tot <- 0
-              values$active_mails_load <- F
-              values$active_mails_send <- F
-            }
-          })
-        }
+          if (values$nb_mails_load > values$nb_mails_tot){
+            values$nb_mails_load <- values$nb_mails_tot
+            values$active_mails_load <- F
+          }
+          if (values$nb_mails_load < 0){
+            values$nb_mails_load <- 0
+            values$active_mails_send <- F
+          }
+          if (values$nb_mails_tot < 0){
+            values$nb_mails_tot <- 0
+            values$active_mails_load <- F
+            values$active_mails_send <- F
+          }
+        })
       })
     }
   )
@@ -173,77 +190,70 @@ EcranAdminUI <- function(id) {
   ns <- NS(id)
 
   tagList(
-    tags$style(
-      ".center {
-            display: flex;
-            justify-content: center
-            }"
-    ),
-    tags$style(".glyphicon-ok {color:#2b8ee5}
-              .glyphicon-remove {color:#e5413b}
-              .glyphicon-exclamation-sign {color:#e5413b}
-              .glyphicon-flag, .glyphicon-trash {color:#28b728}"
-    ),
-    h1("Gestion de l'escape room"),
-    column(12,
-           actionButton(ns("reboot"), "Reboot"),
-           actionButton(ns("avancer"), "Avancer d'une étape"),
-           actionButton(ns("reculer"), "réculer d'une étape"),
-           class = "center",
-    ),
-    fluidRow(
-      h1("Progression de l'escape room"),
-      DT::dataTableOutput(ns("synthese_admin")),
-      DT::dataTableOutput(ns("db"))
-    ),
-    fluidRow(
-      h1("Envoyer un message vocal"),
-      textInput(ns("message_vocal"),label = NULL,placeholder = "Réponse"),
-      actionButton(ns("send_message_vocal"),"Envoyer")
-    ),
-    fluidRow(
-      h1("Heure de fin de l'escape room"),
-      textInput(ns("heure_fin"),label = "Heure",placeholder = "Heure"),
-      textInput(ns("minute_fin"),label = "Minute",placeholder = "Minute")
-    ),
+    style_global(),
+    div(class = "card center_text",h1("Gestion de l'escape room")),
     fluidRow(
       column(6,
-        fluidRow(
-          h1("Chargement des mails"),
-          fluidRow(
-            column(width = 3,textOutput(ns("nb_mails_load"))),
-            column(width = 6,
-                   actionButton(ns("active_mails_load"),"Activer le chargement de mails"),
-                   actionButton(ns("desactive_mails_load"),"Désactiver le chargement de mails")
-            )
-          ),
-          fluidRow(
-            column(width = 3,
-              textInput(ns("nvx_mails_load"),label = NULL,
-                        placeholder = "Changer le nombre de mails chargés")
-            ),
-            column(width = 6,actionButton(ns("nvx_mails_load_button"),"Changer"))
-          )
+        div(class = "card",
+            h2("Progression de l'escape room"),
+            actionButton(ns("reboot"), "Reboot"),
+            actionButton(ns("avancer"), "Avancer d'une étape"),
+            actionButton(ns("reculer"), "Reculer d'une étape"),
+            DT::dataTableOutput(ns("synthese_admin"))
         )
       ),
       column(6,
-         fluidRow(
-           h1("Envoi des mails"),
-           fluidRow(
-             column(width = 3,textOutput(ns("nb_mails_send"))),
-             column(width = 6,
-                    actionButton(ns("active_mails_send"),"Activer l'envoi de mails"),
-                    actionButton(ns("desactive_mails_send"),"Désactiver l'envoi de mails")
+             div(class = "card",
+                 h2("Progression des scans et mails"),
+                 div(class = "panel-title",textOutput(ns("nb_mails_load"))),
+                 div(class = "panel-title",textOutput(ns("nb_mails_send"))),
+                 div(class = "panel-title",textOutput(ns("nb_scans"))),
+                 actionButton(ns("active_mails_load"),"Activer le chargement de mails"),
+                 actionButton(ns("desactive_mails_load"),"Désactiver le chargement de mails"),
+                 br(),
+                 actionButton(ns("active_mails_send"),"Activer l'envoi de mails"),
+                 actionButton(ns("desactive_mails_send"),"Désactiver l'envoi de mails"),
+
+                 fluidRow(
+                   column(width = 8,textInput(ns("nvx_mails_load"),
+                                                     label = NULL,
+                                    placeholder = "Changer le nombre de mails chargés")
+                   ),
+                   column(width = 4,actionButton(ns("nvx_mails_load_button"),"Changer"))
+                 ),
+                 fluidRow(
+                   column(width = 8,textInput(ns("nvx_mails_send"),
+                                              label = NULL,
+                                              placeholder = "Changer le nombre de mails envoyés")
+                   ),
+                   column(width = 4,actionButton(ns("nvx_mails_send_button"),"Changer"))
+                 )
              )
-           ),
-           fluidRow(
-             column(width = 3,
-                    textInput(ns("nvx_mails_send"),label = NULL,
-                              placeholder = "Changer le nombre de mails envoyés")
-             ),
-             column(width = 6,actionButton(ns("nvx_mails_send_button"),"Changer"))
-           )
-         )
+      )
+    ),
+    fluidRow(
+      column(6,
+        div(class = "card",
+            h2("Envoyer un message dans SYNAPSE"),
+            fluidRow(
+              column(6,textInput(ns("message_text"),label = NULL)),
+              column(6,actionButton(ns("send_message_text"),"Envoyer"))
+            ),
+            fluidRow(
+              h2("Envoyer un message vocal"),
+              column(6,textInput(ns("message_vocal"),label = NULL)),
+              column(6,actionButton(ns("send_message_vocal"),"Envoyer"))
+            )
+        )
+      ),
+      column(6,
+             div(class = "card",
+                 h1("Heure de fin de l'escape room"),
+                 fluidRow(
+                   column(width = 6,textInput(ns("heure_fin"),label = "Heure")),
+                   column(width = 6,textInput(ns("minute_fin"),label = "Minute"))
+                 )
+             )
       )
     )
   )

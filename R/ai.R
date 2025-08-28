@@ -98,7 +98,6 @@ EcranAIServer <- function(id,values) {
 
         # Réponse de l'AI
         text_out <- ask_AI(input$question_text, "Question_perso")
-        values$text_AI <- text_out
 
         # Ajouter le message d'Alice avec un délai pour simuler la réflexion
         delay(500, appendChatMessage("SYNAPSE", text_out, ns))
@@ -114,17 +113,20 @@ EcranAIServer <- function(id,values) {
         sheet_append(values$id_drive, data = new_rows,sheet = "db_AI")
       })
 
-      text_AI_admin <- reactiveVal("")
-
       observeEvent(values$text_AI_admin,{
         text_out <- values$text_AI_admin
         appendChatMessage("SYNAPSE", text_out, ns)
-        delay(500, text_AI_admin(text_out))
-        values$text_AI <- text_out
+      })
+
+      vocal_AI_admin <- reactiveVal("")
+
+      observeEvent(values$vocal_AI_admin,{
+        text_out <- values$vocal_AI_admin
+        delay(500, vocal_AI_admin(text_out))
       })
 
       observe({
-        callModule(gl_talk_shiny, "AI_audio", transcript = text_AI_admin, controls = FALSE,
+        callModule(gl_talk_shiny, "AI_audio", transcript = vocal_AI_admin, controls = FALSE,
                    languageCode = "fr-fr", gender = "NEUTRAL", pitch = -5)
       })
     }

@@ -18,10 +18,9 @@ EcranQRServer <- function(id,values,local) {
         mutate(Reponse_concat = reduce(across(everything(), ~ coalesce(., "")), str_c)) %>%
         pull(Reponse_concat)
 
-      print(bonne_reponses)
-
       user_reponses <- str_flatten(sort(input$reponse), "")
-      print(user_reponses)
+      bonne_reponses <- str_remove_all(str_to_lower(bonne_reponses),"[ _/-]")
+      user_reponses <- str_remove_all(str_to_lower(user_reponses),"[ _/-]")
 
       if (user_reponses == bonne_reponses){
 
