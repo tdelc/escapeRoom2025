@@ -1,6 +1,3 @@
-library(magick)
-library(purrr)
-
 # Dictionnaire Morse
 morse_dict <- list(
   A = ".-",    B = "-...",  C = "-.-.",  D = "-..",   E = ".",     F = "..-.",
@@ -16,13 +13,13 @@ morse_dict <- list(
 to_morse <- function(text) {
   text <- toupper(gsub("[^A-Z0-9 ]", "", text))
   chars <- strsplit(text, "")[[1]]
-  morse <- map_chr(chars, ~ if (.x == " ") "/" else morse_dict[[.x]])
+  morse <- purrr::map_chr(chars, ~ if (.x == " ") "/" else morse_dict[[.x]])
   paste(morse, collapse = " ")
 }
 
 # Génère une image blanche ou noire
 get_img <- function(color = "black", size = 1000) {
-  image_blank(width = size, height = size, color = color)
+  magick::image_blank(width = size, height = size, color = color)
 }
 
 # Génère la séquence d’images en fonction du code Morse
@@ -58,8 +55,8 @@ morse_to_gif <- function(word, filename = "morse.gif") {
     }
   }
 
-  gif <- image_join(frames)
-  image_animate(gif, fps = 1) %>%
-    image_write(filename)
+  gif <- magick::image_join(frames)
+  magick::image_animate(gif, fps = 1) %>%
+    magick::image_write(filename)
   message("GIF sauvegardé sous : ", filename)
 }

@@ -17,4 +17,7 @@ LazyData: true
 URL: https://github.com/tdelc/escapeRoom
 BugReports: https://github.com/tdelc/escapeRoom/issues
 Imports: 
+    magick,
+    magrittr,
     sortable
+RoxygenNote: 7.3.2
