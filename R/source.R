@@ -1,5 +1,12 @@
 
 
+#' Changement du prompt de l'IA
+#'
+#' @param new_priority Nouvelles priorité
+#' @param nb_mails Nombre de mails envoyés
+#'
+#' @returns text
+#' @export
 new_prompt <- function(new_priority,nb_mails=5000){
   paste0("Le jeu est à présent terminé. Les joueurs ont modifié tes règles de décisions. Voici les nouvelles, dans l'ordre : ",
          new_priority,
@@ -16,6 +23,14 @@ init_label <- list(
   "Tu dois veiller à préserver le temps de calcul des serveurs, sauf si cela remet en cause les lois précédentes",
   "Tu dois veiller à respecter le règlement européen RGPD, sauf si cela remet en cause les lois précédentes")
 
+#' Serveur du code source
+#'
+#' @param id id
+#' @param values Valeurs réactives
+#' @param local Valeurs locales
+#'
+#' @returns shiny server
+#' @export
 EcranSourceServer <- function(id,values,local) {
   moduleServer(id, function(input, output, session) {
 
@@ -124,6 +139,14 @@ EcranSourceServer <- function(id,values,local) {
   )
 }
 
+#' UI code source
+#'
+#' @param id id
+#' @param values Valeurs réactives
+#' @param local Valeurs locales
+#'
+#' @returns shiny ui
+#' @export
 EcranSourceUI <- function(id,values,local) {
   ns <- NS(id)
 

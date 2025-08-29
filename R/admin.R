@@ -1,5 +1,12 @@
 
 
+#' Serveur Admin
+#'
+#' @param id id
+#' @param values valeurs réactives
+#'
+#' @returns shiny server
+#' @export
 EcranAdminServer <- function(id,values) {
   moduleServer(
     id,
@@ -186,6 +193,12 @@ EcranAdminServer <- function(id,values) {
   )
 }
 
+#' UI Admin
+#'
+#' @param id id
+#'
+#' @returns shiny ui
+#' @export
 EcranAdminUI <- function(id) {
   ns <- NS(id)
 

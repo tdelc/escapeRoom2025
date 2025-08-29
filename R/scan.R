@@ -1,3 +1,10 @@
+#' Check si le scan est déjà fait
+#'
+#' @param values Valeurs réactives
+#' @param scan_id ID du scan
+#'
+#' @returns boolean
+#' @export
 check_scan <- function(values,scan_id){
   if (is.na(scan_id) || scan_id == "") return(FALSE)
 
@@ -15,6 +22,14 @@ check_scan <- function(values,scan_id){
   }
 }
 
+#' Scan en cours
+#'
+#' @param session Session shiny
+#' @param values Valeurs réactives
+#' @param scan_id ID du scan
+#'
+#' @returns TRUE
+#' @export
 action_scan <- function(session,values,scan_id){
 
   scan_ligne <- info_scans(values) %>% filter(ID == scan_id)
@@ -43,8 +58,14 @@ action_scan <- function(session,values,scan_id){
   return(TRUE)
 }
 
+#' Valider un scan
+#'
+#' @param session session shiny
+#' @param values Valeurs réactives
+#'
+#' @returns NULL
+#' @export
 valid_scan <- function(session,values){
-
   new_row <- tibble(CD_admin = "action", timer = Sys.time(),
                     ID = values$scan_id,FL_Valid = 1)
 
@@ -57,6 +78,14 @@ valid_scan <- function(session,values){
   values$text_scan <- "En attente d'un nouveau scan"
 }
 
+#' Serveur de scans
+#'
+#' @param id id
+#' @param values Valeurs réactives
+#' @param local Valeurs locales
+#'
+#' @returns shiny server
+#' @export
 EcranScanServer <- function(id,values,local) {
   moduleServer(
     id,
@@ -155,6 +184,14 @@ EcranScanServer <- function(id,values,local) {
   )
 }
 
+#' UI scans
+#'
+#' @param id id
+#' @param values Valeurs réactives
+#' @param local Valeurs locales
+#'
+#' @returns shiny ui
+#' @export
 EcranScanUI <- function(id,values,local) {
   ns <- NS(id)
 

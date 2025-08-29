@@ -1,3 +1,7 @@
+#' Personalité de l'IA
+#'
+#' @returns text
+#' @export
 personality_AI <- function(){
   "Pré-Prompt pour l'IA 'SYNAPSE' (Système d'Analyse et de Normalisation Automatique des Problèmes Statistiques et Éthiques)
 
@@ -50,6 +54,13 @@ personality_AI <- function(){
   → Si je détecte que 30 % des citoyens ont mal déclaré leurs revenus, dois-je les ignorer au nom du RGPD, au risque de biaiser les décisions publiques ?"
 }
 
+#' Poser une question à l'IA
+#'
+#' @param text question
+#' @param id id chatGPT
+#'
+#' @returns text
+#' @export
 ask_AI <- function(text,id){
   out <- "Pardon, je n'ai pas compris la question ou le message. Merci de recommancer dans 2 minutes."
   try({
@@ -60,6 +71,14 @@ ask_AI <- function(text,id){
   out
 }
 
+#' Ajouter un message dans le chat
+#'
+#' @param sender Expéditeur
+#' @param message Message
+#' @param ns id shiny
+#'
+#' @returns JS
+#' @export
 appendChatMessage <- function(sender, message, ns) {
   message_js <- jsonlite::toJSON(message, auto_unbox = TRUE)
   runjs(sprintf("
@@ -69,6 +88,13 @@ appendChatMessage <- function(sender, message, ns) {
         ", sender, message_js, ns("chat_window"), ns("chat_window"), ns("chat_window")))
 }
 
+#' Serveur de l'IA
+#'
+#' @param id id
+#' @param values Valeurs réactives
+#'
+#' @returns shiny server
+#' @export
 EcranAIServer <- function(id,values) {
   moduleServer(
     id,
@@ -134,6 +160,12 @@ EcranAIServer <- function(id,values) {
 }
 
 
+#' UI IA
+#'
+#' @param id id
+#'
+#' @returns shiny ui
+#' @export
 EcranAIUI <- function(id) {
   ns <- NS(id)
 

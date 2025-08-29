@@ -1,5 +1,11 @@
 ### MODULES
 
+#' Module UI text
+#'
+#' @param id id du module
+#'
+#' @returns html
+#' @export
 indicTextUI <- function(id) {
   ns <- NS(id)
   tagList(
@@ -12,6 +18,13 @@ indicTextUI <- function(id) {
   )
 }
 
+#' Module serveur text
+#'
+#' @param id id du module
+#' @param db_i db des indices
+#'
+#' @returns moduleServer
+#' @export
 indicTextServer <- function(id,db_i) {
   moduleServer(
     id,
@@ -25,6 +38,12 @@ indicTextServer <- function(id,db_i) {
   )
 }
 
+#' Module UI animation
+#'
+#' @param id id du module
+#'
+#' @returns html
+#' @export
 indicAnimUI <- function(id) {
   ns <- NS(id)
   tagList(fluidRow(
@@ -45,6 +64,14 @@ indicAnimUI <- function(id) {
   )
 }
 
+#' Module serveur animation
+#'
+#' @param id id du module
+#' @param db_i db des indices
+#' @param path chemin des fichiers
+#'
+#' @returns moduleServer
+#' @export
 indicAnimServer <- function(id,db_i,path) {
   moduleServer(
     id,

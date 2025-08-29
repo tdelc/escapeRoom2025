@@ -1,4 +1,11 @@
 
+#' Serveur Contrôle
+#'
+#' @param id id
+#' @param base_url base de l'url pour les écrans
+#'
+#' @returns shiny server
+#' @export
 EcranControleServer <- function(id,base_url) {
   moduleServer(
     id,
@@ -39,6 +46,12 @@ EcranControleServer <- function(id,base_url) {
   )
 }
 
+#' UI Contrôle
+#'
+#' @param id id
+#'
+#' @returns shiny ui
+#' @export
 EcranControleUI <- function(id) {
   ns <- NS(id)
   tagList(

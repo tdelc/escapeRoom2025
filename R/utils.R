@@ -1,3 +1,13 @@
+#' Calcul de temps restant en seconde à partir d'une heure et minute
+#'
+#' @param heure (en numérique)
+#' @param minute (en minute)
+#'
+#' @returns liste avec le total des secondes
+#' @export
+#'
+#' @examples
+#' temps_restant(23,30)
 temps_restant <- function(heure, minute) {
   # heure actuelle
   maintenant <- Sys.time()

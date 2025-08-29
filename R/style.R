@@ -1,9 +1,17 @@
 #### Scan ####
 
-# .btn-scan:hover {
-#   background-color: #28cc28;
-# }
+#' Style HTML pour les scans
+#'
+#' @param color_dark Couleur foncée
+#' @param color_light Couleur claire
+#'
+#' @returns html
+#' @export
 style_scan <- function(color_dark,color_light){
+
+  # .btn-scan:hover {
+  #   background-color: #28cc28;
+  # }
 
   tags$style(HTML(paste0("
     body {
@@ -32,10 +40,11 @@ style_scan <- function(color_dark,color_light){
   ")))
 }
 
-# #470000
-# ff3333
-# ff6666
 
+#' Style HTML global
+#'
+#' @returns html
+#' @export
 style_global <- function(){
   tags$style(HTML(paste0("
     .card {
@@ -61,6 +70,13 @@ style_global <- function(){
   ")))
 }
 
+#' Style HTML par couleur
+#'
+#' @param color_dark Couleur foncée
+#' @param color_light Couleur claire
+#'
+#' @returns html
+#' @export
 style_list <- function(color_dark,color_light){
 
   tags$style(HTML(paste0("

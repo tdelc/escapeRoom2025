@@ -1,11 +1,12 @@
-i_question <- function(values,local=TRUE){
-  actu <- actu_enigmes(values) %>% filter(FL_Valid == 0)
-  if (is.list(local)){
-    actu <- actu %>% filter(Ecran == local$userEcran)
-  }
-  actu %>% summarise(ID_enigme=min(ID_enigme)) %>% pull(ID_enigme)
-}
 
+#' Serveur Questions/Réponses
+#'
+#' @param id id
+#' @param values Valeurs réactives
+#' @param local Valeurs locales
+#'
+#' @returns shiny server
+#' @export
 EcranQRServer <- function(id,values,local) {
   moduleServer(id, function(input, output, session) {
 
@@ -79,6 +80,14 @@ EcranQRServer <- function(id,values,local) {
   )
 }
 
+#' UI Questions/Réponses
+#'
+#' @param id id
+#' @param values Valeurs réactives
+#' @param local Valeurs locales
+#'
+#' @returns shiny ui
+#' @export
 EcranQRUI <- function(id,values,local) {
   ns <- NS(id)
 
