@@ -40,6 +40,7 @@ action_scan <- function(session,values,scan_id){
     "Analyse des métadonnées...",
     "Recherche de virus...",
     "Vérification de l'intégrité des données...",
+    paste("Analyse des meta-données du fichier:", texte),
     "Scan du code source...",
     "Compilation des résultats...",
     "Test unitaire sur le fichier...",
@@ -98,6 +99,7 @@ EcranScanServer <- function(id,values,local) {
         observe({
           if (local$userType == "S" & str_length(local$userEcran) > 0){
             values$scan_id <- as.numeric(local$userEcran)
+            print(values$scan_id)
             if (check_scan(values,values$scan_id) == TRUE){
               values$valid_scan <- action_scan(session,values,values$scan_id)
             }
@@ -204,22 +206,41 @@ EcranScanUI <- function(id,values,local) {
 
       tagList(
 
-        fluidRow(column(12,div(style = "height:100px;"))),
+        # fluidRow(column(12,div(style = "height:100px;"))),
+        #
+        # fluidRow(
+        #   column(12,textInput(
+        #     inputId = ns("scan_num"),label = NULL,
+        #     placeholder = "Numéro du scan"),class = "center"),
+        #   column(12,uiOutput(ns("textquestion_scan")),class = "center"),
+        #   column(12,actionButton(ns("scan_send"),"Scannez"),class = "center"),
+        #
+        #   br(),br(),br(),
+        #   column(12,
+        #          progressBar(
+        #            id = ns("scan_progress"),
+        #            value = 0,total = 100,display_pct = TRUE,
+        #            title = paste0("En attente de scan")
+        #          ))
+        # )
 
         fluidRow(
-          column(12,textInput(
-            inputId = ns("scan_num"),label = NULL,
-            placeholder = "Numéro du scan"),class = "center"),
-          column(12,uiOutput(ns("textquestion_scan")),class = "center"),
-          column(12,actionButton(ns("scan_send"),"Scannez"),class = "center"),
-
-          br(),br(),br(),
-          column(12,
-                 progressBar(
-                   id = ns("scan_progress"),
-                   value = 0,total = 100,display_pct = TRUE,
-                   title = paste0("En attente de scan")
-                 ))
+          column(
+            12,
+            textInput(ns("scan_num"), NULL,
+                      placeholder = "Numéro du scan",
+                      width = "100%"),
+            uiOutput(ns("textquestion_scan"), class = "text-center h5 mt-2"),
+            actionButton(ns("scan_send"), "Scannez",
+                         class = "btn btn-success btn-lg w-100 mt-2"),
+            br(),
+            progressBar(
+              id = ns("scan_progress"),
+              value = 0, total = 100,
+              display_pct = TRUE,
+              title = "En attente de scan"
+            )
+          )
         )
       )
     )
