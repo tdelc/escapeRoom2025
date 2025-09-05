@@ -99,9 +99,10 @@ EcranScanServer <- function(id,values,local) {
         observe({
           if (local$userType == "S" & str_length(local$userEcran) > 0){
             values$scan_id <- as.numeric(local$userEcran)
-            print(values$scan_id)
+            # print(values$scan_id)
             if (check_scan(values,values$scan_id) == TRUE){
               values$valid_scan <- action_scan(session,values,values$scan_id)
+              values$nb_mails_tot <- values$nb_mails_tot - values$nb_mails_per_scan
             }
           }
         })
@@ -116,12 +117,12 @@ EcranScanServer <- function(id,values,local) {
         }
       })
 
-      observeEvent(input$scan_send, {
-        values$scan_id <- as.numeric(input$scan_num)
-        if (check_scan(values,values$scan_id) == TRUE){
-          values$valid_scan <- action_scan(session,values,values$scan_id)
-        }
-      })
+      # observeEvent(input$scan_send, {
+      #   values$scan_id <- as.numeric(input$scan_num)
+      #   if (check_scan(values,values$scan_id) == TRUE){
+      #     values$valid_scan <- action_scan(session,values,values$scan_id)
+      #   }
+      # })
 
       # Listing des scans
       output$listing_scan <- renderText({
@@ -205,34 +206,15 @@ EcranScanUI <- function(id,values,local) {
       style_scan("#004700","#33ff33"),
 
       tagList(
-
-        # fluidRow(column(12,div(style = "height:100px;"))),
-        #
-        # fluidRow(
-        #   column(12,textInput(
-        #     inputId = ns("scan_num"),label = NULL,
-        #     placeholder = "Numéro du scan"),class = "center"),
-        #   column(12,uiOutput(ns("textquestion_scan")),class = "center"),
-        #   column(12,actionButton(ns("scan_send"),"Scannez"),class = "center"),
-        #
-        #   br(),br(),br(),
-        #   column(12,
-        #          progressBar(
-        #            id = ns("scan_progress"),
-        #            value = 0,total = 100,display_pct = TRUE,
-        #            title = paste0("En attente de scan")
-        #          ))
-        # )
-
         fluidRow(
           column(
             12,
-            textInput(ns("scan_num"), NULL,
-                      placeholder = "Numéro du scan",
-                      width = "100%"),
-            uiOutput(ns("textquestion_scan"), class = "text-center h5 mt-2"),
-            actionButton(ns("scan_send"), "Scannez",
-                         class = "btn btn-success btn-lg w-100 mt-2"),
+            # textInput(ns("scan_num"), NULL,
+            #           placeholder = "Numéro du scan",
+            #           width = "100%"),
+            # uiOutput(ns("textquestion_scan"), class = "text-center h5 mt-2"),
+            # actionButton(ns("scan_send"), "Scannez",
+            #              class = "btn btn-success btn-lg w-100 mt-2"),
             br(),
             progressBar(
               id = ns("scan_progress"),

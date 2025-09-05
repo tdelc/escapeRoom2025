@@ -48,6 +48,9 @@ values <- reactiveValues(db_enigmes=load_db_enigmes(id_drive),
                          id_drive = id_drive,
                          id_chatgpt = id_chatgpt,
                          nb_mails_tot = 11000000,
+                         nb_mails_per_scan = 11000000 /
+                           nrow(load_db_scans(id_drive) %>%
+                                  filter(CD_admin == "init")),
                          nb_mails_load = 0,
                          nb_mails_send = 0,
                          active_mails_load = FALSE,
