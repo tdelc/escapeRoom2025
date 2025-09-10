@@ -15,6 +15,10 @@ EcranAdminServer <- function(id,values) {
       updateTextInput(session,"heure_fin",value = lubridate::hour(Sys.time())+1)
       updateTextInput(session,"minute_fin",value = lubridate::minute(Sys.time()))
 
+      observeEvent(input$language,{
+        values$language <- input$language
+      })
+
       observeEvent(input$send_message_text,{
         values$text_AI_admin <- input$message_text
       })
@@ -212,6 +216,7 @@ EcranAdminUI <- function(id) {
             actionButton(ns("reboot"), "Reboot"),
             actionButton(ns("avancer"), "Avancer d'une étape"),
             actionButton(ns("reculer"), "Reculer d'une étape"),
+            radioButtons(ns('language'), choices = c("fr","nl"),label=NULL),
             DT::dataTableOutput(ns("synthese_admin"))
         )
       ),
@@ -252,8 +257,8 @@ EcranAdminUI <- function(id) {
               column(6,textInput(ns("message_text"),label = NULL)),
               column(6,actionButton(ns("send_message_text"),"Envoyer"))
             ),
+            h2("Envoyer un message vocal"),
             fluidRow(
-              h2("Envoyer un message vocal"),
               column(6,textInput(ns("message_vocal"),label = NULL)),
               column(6,actionButton(ns("send_message_vocal"),"Envoyer"))
             )
