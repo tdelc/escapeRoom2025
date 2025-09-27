@@ -6,7 +6,11 @@
 #' @export
 load_db_enigmes <- function(id_drive){
   googlesheets4::read_sheet(id_drive,sheet = "db_enigmes") %>%
-    mutate(timer = as.numeric(timer))
+    mutate(timer = as.numeric(timer),
+           Reponse1 = unlist(map(Reponse1, ~ ifelse(length(.x),.x,NA))),
+           Reponse2 = unlist(map(Reponse2, ~ ifelse(length(.x),.x,NA))),
+           Reponse3 = unlist(map(Reponse3, ~ ifelse(length(.x),.x,NA))),
+           )
 }
 
 #' Chargement de la DB scans
@@ -31,6 +35,31 @@ load_db_AI <- function(id_drive){
     mutate(timer = as.numeric(timer))
 }
 
+#' Chargement de la DB traduction
+#'
+#' @param id_drive id du google drive
+#'
+#' @returns data.frame
+#' @export
+load_db_trad <- function(id_drive){
+  googlesheets4::read_sheet(id_drive,sheet = "db_trad")
+}
+
+#' Fonction de traduction
+#'
+#' @param text texte à traduire, provenant du fr
+#' @param values valeurs réactives
+#'
+#' @returns text
+#' @export
+trad <- function(text,values){
+  print(text)
+  row_trad <- values$db_trad %>% filter(fr == text)
+  if (nrow(row_trad) == 0) return(text)
+  else return(pull(row_trad[,values$language]))
+}
+
+
 #' Extraire les infos initiales des enigmes
 #'
 #' @param values Valeurs réactives
@@ -38,7 +67,19 @@ load_db_AI <- function(id_drive){
 #' @returns data.frame
 #' @export
 info_enigmes <- function(values){
-  values$db_enigmes %>% filter(CD_admin == "init")
+  db <- values$db_enigmes %>% filter(CD_admin == "init")
+
+  if (values$language == "fr"){
+    db$LabelStep <- db$LabelStep_fr
+    db$Label <- db$Label_fr
+    db$LabelErreur <- db$LabelErreur_fr
+  }
+  if (values$language == "nl"){
+    db$LabelStep <- db$LabelStep_nl
+    db$Label <- db$Label_nl
+    db$LabelErreur <- db$LabelErreur_nl
+  }
+  return(db)
 }
 
 #' Extraire les infos initiales des scans
@@ -81,8 +122,7 @@ actu_enigmes <- function(values){
 #' @export
 actu_scans <- function(values){
   values$db_scans %>% group_by(ID) %>%
-    filter(row_number() == n())  %>% ungroup() %>%
-    arrange(ID)
+    filter(row_number() == n())  %>% ungroup()
 }
 
 #' Extraire les infos actuelles des IA

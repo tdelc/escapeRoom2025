@@ -17,6 +17,8 @@ EcranAdminServer <- function(id,values) {
 
       observeEvent(input$language,{
         values$language <- input$language
+        set_chatlog(chatlog_id = "Question_perso",
+                    initial_content = personality_AI(values$language))
       })
 
       observeEvent(input$send_message_text,{

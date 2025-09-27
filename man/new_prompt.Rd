@@ -4,7 +4,7 @@
 \alias{new_prompt}
 \title{Changement du prompt de l'IA}
 \usage{
-new_prompt(new_priority, nb_mails = 5000)
+new_prompt(new_priority, nb_mails = 5000, language = "fr")
 }
 \arguments{
 \item{new_priority}{Nouvelles priorité}

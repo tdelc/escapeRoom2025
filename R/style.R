@@ -141,3 +141,174 @@ style_list <- function(color_dark,color_light){
       }
   ")))
 }
+
+#' Style général Escape (dark propre)
+#' @param primary couleur principale (bouton/accents)
+#' @param accent  seconde couleur (hover/glow)
+#' @param bg      fond
+#' @param text    texte
+style_escape_theme <- function(primary = "#2b8ee5",
+                               accent  = "#00d084",
+                               bg      = "#0d0d0d",
+                               text    = "#e6f1ff") {
+  htmltools::tags$style(htmltools::HTML(glue::glue("
+  :root {{
+    --primary: {primary};
+    --accent:  {accent};
+    --bg:      {bg};
+    --text:    {text};
+    --muted:   #b9c5d1;
+    --error:   #e5413b;
+    --ok:      #28b728;
+    --card:    #F0F8FF;
+  }}
+
+  body {{
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Fira Mono','Courier New',monospace;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.35;
+  }}
+
+  /* Conteneur max pour éviter les lignes trop longues */
+  .container-narrow {{
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 16px;
+  }}
+
+  /* Cartes */
+  .card {{
+    background: var(--card);
+    color: #0e141b;
+    opacity: .92;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px #00000050;
+    padding: 28px;
+    border: 1px solid #1e293b20;
+    margin-bottom: 28px;
+  }}
+
+  /* Titre de catégorie (gros, all-caps, séparation nette) */
+  .category-title {{
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 800;
+    font-size: clamp(22px, 3vw, 30px);
+    color: #0e141b;
+    margin: 0 0 18px 0;
+    position: relative;
+  }}
+  .category-title::after {{
+    content: '';
+    display: block;
+    width: 72px;
+    height: 4px;
+    margin-top: 10px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    box-shadow: 0 0 10px var(--primary);
+  }}
+
+  /* Label de question (plus petit, discret) */
+  .question-label {{
+    color: #0e141b;
+    opacity: .8;
+    font-size: 16px;
+    margin-top: 18px;
+    letter-spacing: .02em;
+  }}
+
+  /* Groupe réponse (input + bouton) */
+  .answer-group {{
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+    margin: 8px 0 6px 0;
+  }}
+
+  /* Input bien visible */
+  .answer-input input.form-control {{
+    background: #0b1220;
+    color: var(--text);
+    border: 1px solid #243449;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 18px;
+    letter-spacing: .05em;
+    outline: none;
+    box-shadow: inset 0 0 0 1px #00000030;
+  }}
+  .answer-input input.form-control:focus {{
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px #2b8ee533;
+  }}
+
+  /* Bouton */
+  .btn-answer {{
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    cursor: pointer;
+    transition: transform .06s ease, box-shadow .2s ease, background .2s ease;
+    box-shadow: 0 6px 18px #2b8ee555;
+  }}
+  .btn-answer:hover {{
+    background: color-mix(in srgb, var(--primary) 85%, black);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px #2b8ee560;
+  }}
+  .btn-answer:active {{
+    transform: translateY(0);
+    box-shadow: 0 4px 12px #2b8ee540;
+  }}
+
+  /* Messages (info/erreur/succès) */
+  .alert {{
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+  }}
+  .alert-info {{
+    background: #0b1220;
+    color: var(--text);
+    border: 1px solid #2b8ee540;
+  }}
+  .alert-error {{
+    background: #2a0f10;
+    color: #ffd8d6;
+    border: 1px solid var(--error);
+    box-shadow: inset 0 0 0 1px #00000030;
+    animation: shake .28s ease-in-out 1;
+  }}
+  .alert-ok {{
+    background: #0f2912;
+    color: #dcffe4;
+    border: 1px solid var(--ok);
+  }}
+
+  @keyframes shake {{
+    0% {{ transform: translateX(0); }}
+    25% {{ transform: translateX(-4px); }}
+    50% {{ transform: translateX(4px); }}
+    75% {{ transform: translateX(-2px); }}
+    100% {{ transform: translateX(0); }}
+  }}
+
+  /* Icônes glyphicons si tu les utilises encore */
+  .glyphicon-ok {{ color: var(--ok) }}
+  .glyphicon-remove, .glyphicon-exclamation-sign {{ color: var(--error) }}
+
+  /* Utilitaires */
+  .center {{ display:flex; justify-content:center; }}
+  .center_text {{ text-align:center; }}
+  ")))
+}
+

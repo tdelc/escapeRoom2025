@@ -4,7 +4,7 @@
 \alias{ask_AI}
 \title{Poser une question à l'IA}
 \usage{
-ask_AI(text, id)
+ask_AI(text, id, language)
 }
 \arguments{
 \item{text}{question}

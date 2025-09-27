@@ -16,7 +16,8 @@ EcranQRServer <- function(id,values,local) {
         filter(ID_enigme == i_question(values,local),
                Type == "Question") %>%
         select(starts_with("Reponse")) %>%
-        mutate(Reponse_concat = reduce(across(everything(), ~ coalesce(., "")), str_c)) %>%
+        mutate(Reponse_concat = reduce(across(
+          everything(), ~ coalesce(., "")), str_c)) %>%
         pull(Reponse_concat)
 
       user_reponses <- str_flatten(sort(input$reponse), "")
@@ -36,7 +37,7 @@ EcranQRServer <- function(id,values,local) {
         }
 
         updateTextInput(session = session,inputId = "reponse",placeholder = "Réponse",value = "")
-        output$textquestion <- renderUI("")
+        output$text_erreur <- renderUI("")
 
       }else{
 
@@ -55,7 +56,10 @@ EcranQRServer <- function(id,values,local) {
           pull(LabelErreur) %>% unique()
 
         if (is.na(label_erreur)){
-          texte_erreur <- paste0("Erreur, réinitialisation de l'étape ",label_step)
+          if (values$language == "fr")
+            texte_erreur <- paste0("Erreur, réinitialisation de l'étape ",label_step)
+          else
+            texte_erreur <- paste0("Fout, stap ",label_step," resetten")
         }else{
           texte_erreur <- label_erreur
         }
@@ -71,7 +75,7 @@ EcranQRServer <- function(id,values,local) {
           values$db_enigmes <- load_db_enigmes(values$id_drive)
         }
 
-        output$textquestion <- renderUI(texte_erreur)
+        output$text_erreur <- renderUI(texte_erreur)
       }
 
     })
@@ -129,10 +133,13 @@ EcranQRUI <- function(id,values,local) {
 
   if (local$userType == "I"){
     if (nrow(db_i()) > 0){
-      if (db_i()$Format  == "image")
-        indicAnimServer(ns("indicimg"),db_i(),local$base_url)
-      else
-        indicTextServer(ns("indictxt"),db_i())
+      LabelServer(ns("indic_label"),db_i(),local$base_url)
+    }
+  }
+
+  if (local$userType == "Q"){
+    if (nrow(db_q()) > 0){
+      LabelServer(ns("quest_label"),db_q(),local$base_url)
     }
   }
 
@@ -145,77 +152,53 @@ EcranQRUI <- function(id,values,local) {
   if (fl_bloc_ok()){
     if (local$userType == "I" & nrow(db_i()) > 0){
       tagList(
-        style_global(),
+        # style_global(),
+        style_escape_theme(),
 
         # gl_talk_shinyUI(ns("talk")),
 
         fluidRow(column(12,div(style = "height:50px"))),
+        LabelUI(ns("indic_label"))
 
-        ### QUESTIONS (APPEL MODULES) ###
-
-        if (db_i()$Format == "image") {
-          indicAnimUI(ns("indicimg"))
-        } else {
-          indicTextUI(ns("indictxt"))
-        }
       )
     } else if (local$userType == "Q" & nrow(db_q()) > 0){
       tagList(
         style_global(),
+        style_escape_theme(),
 
         # gl_talk_shinyUI(ns("talk")),
 
-        ### CATEGORIE ###
-        fluidRow(column(6, offset = 3,
-                 div(class = "card center_text",h2(db_q()$LabelStep))
-                 )),
-
-        fluidRow(column(12,div(style = "height:300px;"))),
-
-        ### LABEL ###
-        fluidRow(
-          column(6, offset = 3,div(class = "card center_text",h3(db_q()$Label)))
-        ),
-
-        ### REPONSES ###
-
-        if (db_q()$Format != "rien"){
-
-          fluidRow(column(6, offset = 3,div(class = "card center",
-
-          if (db_q()$Format == "radio") {
-
-            radioButtons(ns("reponse"),label = "",choices = choix(),
-                         selected = NULL,inline = FALSE)
-
-          } else if (db_q()$Format == "select") {
-
-            selectInput(ns("reponse"),label = "",choices = choix(),
-                        selected = NULL,multiple = TRUE)
-
-          } else if (db_q()$Format == "checkbox") {
-
-            checkboxGroupInput(ns("reponse"),label = "",
-                               choices = choix(),selected = NULL)
-
-          } else if (db_q()$Format == "texte") {
-
-            textInput(ns("reponse"),label = NULL,placeholder = "Réponse")
-
-          },
-
-          actionButton(ns("send"),"Envoyer")
-          )))
-        },
-
-        ######################
-
-
-        fluidRow(column(12,div(style = "height:50px;"))),
-
-        column(12,uiOutput(ns("textquestion")),class = "center"),
-
-        fluidRow(column(12,div(style = "height:150px;")))
+        div(class = "container-narrow",
+            div(class = "card question-card",
+                h2(class = "category-title", db_q()$LabelStep),
+                if (db_q()$Format != "rien"){
+                  div(class = "answer-group",
+                      div(class = "answer-input",
+                          if (db_q()$Format == "radio") {
+                            radioButtons(ns("reponse"),label = "",
+                                         choices = choix(),
+                                         selected = NULL,inline = FALSE)
+                            } else if (db_q()$Format == "select") {
+                              selectInput(ns("reponse"),label = "",
+                                          choices = choix(),
+                                          selected = NULL,multiple = TRUE)
+                            } else if (db_q()$Format == "checkbox") {
+                              checkboxGroupInput(ns("reponse"),label = "",
+                                                 choices = choix(),
+                                                 selected = NULL)
+                            } else if (db_q()$Format == "texte") {
+                              textInput(ns("reponse"),label = NULL,
+                                        placeholder = "Réponse")
+                            }
+                      ),
+                      actionButton(ns("send"), "Envoyer", class = "btn-answer"),
+                      uiOutput(ns("text_erreur"))
+                  )
+                  },
+                uiOutput("code_src_message"),     # message (erreur/ok/info)
+                p(class = "question-label", LabelUI(ns("quest_label")))
+            )
+        )
       )
     }
   }

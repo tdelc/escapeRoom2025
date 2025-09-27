@@ -12,7 +12,7 @@ library(text2speech)
 library(googleLanguageR)
 library(later)
 library(sortable)
-library(escapeRoom)
+# library(escapeRoom)
 
 source(".env.R")
 
@@ -37,6 +37,7 @@ text <- reactiveVal("")
 values <- reactiveValues(db_enigmes=load_db_enigmes(id_drive),
                          db_scans=load_db_scans(id_drive),
                          db_AI=load_db_AI(id_drive),
+                         db_trad=load_db_trad(id_drive),
                          i_etape = 1,
                          nb_scan = 0,
                          message_vocal = "",
@@ -128,7 +129,7 @@ shinyServer(function(input, output, session) {
   # Source
   output$source <- renderUI({
     if (local$userType == "O")
-      EcranSourceUI("EcranSource")
+      EcranSourceUI("EcranSource",values,local)
   })
 }
 )

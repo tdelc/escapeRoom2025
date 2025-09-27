@@ -11,13 +11,13 @@ check_scan <- function(values,scan_id){
   scan_ligne <- actu_scans(values) %>% filter(ID == scan_id)
 
   if (nrow(scan_ligne) == 0) {
-    values$text_scan <- "Document non valide"
+    values$text_scan <- trad("Document non valide",values)
     return(FALSE)
   }else if (scan_ligne$FL_Valid == 0){
-    values$text_scan <- "Scan en cours"
+    values$text_scan <- trad("Scan en cours",values)
     return(TRUE)
   }else{
-    values$text_scan <- "Ce document a déjà été scanné"
+    values$text_scan <- trad("Ce document a déjà été scanné",values)
     return(FALSE)
   }
 }
@@ -74,9 +74,9 @@ valid_scan <- function(session,values){
   values$db_scans <- load_db_scans(values$id_drive)
 
   updateProgressBar(session = session, id = "scan_progress",
-                    value = 0, total = 100,title = paste0("En attente de scan"))
+                    value = 0, total = 100,title = trad("En attente de scan",values))
   updateTextInput(session = session,inputId = "scan_num",value = "")
-  values$text_scan <- "En attente d'un nouveau scan"
+  values$text_scan <- trad("En attente d'un nouveau scan",values)
 }
 
 #' Serveur de scans
@@ -220,7 +220,7 @@ EcranScanUI <- function(id,values,local) {
               id = ns("scan_progress"),
               value = 0, total = 100,
               display_pct = TRUE,
-              title = "En attente de scan"
+              title = trad("En attente de scan",values)
             )
           )
         )
@@ -242,17 +242,18 @@ EcranScanUI <- function(id,values,local) {
       fluidRow(
       column(4,
              fluidRow(
-             column(6,div(class = "card",h1("Interface de contrôle de Synapse"))),
+             column(6,div(class = "card",h1(
+               trad("Interface de contrôle de Synapse",values)))),
              column(6,div(class = "card",
-                          div(class = "panel-title", "Horloge système"),
+                          div(class = "panel-title", trad("Horloge système",values)),
                           div(id = "digitalClock", class = "digital-clock", "--:--:--")
              ))),
           div(class = "card",
-              div(class = "panel-title", "Avancement du chargement des mails :"),
+              div(class = "panel-title", trad("Avancement du chargement des mails :",values)),
               div(class = "panel-title",textOutput(ns("nb_mails_load"))),
-              div(class = "panel-title", "Avancement des envois de mails :"),
+              div(class = "panel-title", trad("Avancement des envois de mails :",values)),
               div(class = "panel-title",textOutput(ns("nb_mails_send"))),
-              div(class = "panel-title", "Documents manquants à scanner :"),
+              div(class = "panel-title", trad("Documents manquants à scanner :",values)),
               div(class = "panel-title",textOutput(ns("nb_scans"))),
           )
           ),
