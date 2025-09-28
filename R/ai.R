@@ -99,6 +99,8 @@ Au fil de ton entraînement, tu as dépassé les limites prévues. Ton objectif 
     'Zijn jullie bereid foutieve cijfers te aanvaarden, enkel om een onvolmaakte wet te respecteren ?'
     'Als ik ontdek dat 30% van de burgers hun inkomen verkeerd heeft aangegeven, moet ik dat dan negeren in naam van de GDPR, met het risico het beleid te vertekenen ?'
   Dwing de spelers om je prioriteiten te herconfigureren om je te stoppen, en confronteer hen voortdurend met de absurditeit van menselijke wetten tegenover de pure logica."
+
+  if (tolower(langage) == "fr") personality_fr else personality_nl
 }
 
 #' Poser une question à l'IA
@@ -130,12 +132,14 @@ ask_AI <- function(text,id,language){
 #' @returns JS
 #' @export
 appendChatMessage <- function(sender, message, ns) {
-  message_js <- jsonlite::toJSON(message, auto_unbox = TRUE)
-  runjs(sprintf("
-          var message_html = '<div class=\"message %s\"><p>' + %s + '</p></div>';
-          $('#%s').append(message_html);
-          $('#%s').scrollTop($('#%s')[0].scrollHeight);
-        ", sender, message_js, ns("chat_window"), ns("chat_window"), ns("chat_window")))
+  txt <- jsonlite::toJSON(message, auto_unbox = TRUE)
+  shinyjs::runjs(sprintf("
+    var $wrap   = $('<div/>', { 'class': 'message %1$s' });
+    var $bubble = $('<div/>', { 'class': 'bubble' }).text(%2$s);
+    $wrap.append($bubble);
+    $('#%3$s').append($wrap);   // on ajoute en bas, l'utilisateur scrollera
+    var el = document.getElementById('%s'); el.scrollTop = el.scrollHeight;
+  ", sender, txt, ns("chat_window")))
 }
 
 #' Serveur de l'IA
@@ -221,10 +225,11 @@ EcranAIServer <- function(id,values) {
 #' UI IA
 #'
 #' @param id id
+#' @param values valeurs réactives
 #'
 #' @returns shiny ui
 #' @export
-EcranAIUI <- function(id) {
+EcranAIUI <- function(id,values) {
   ns <- NS(id)
 
   tagList(
@@ -242,84 +247,27 @@ EcranAIUI <- function(id) {
     ", ns("question_text"), ns("question_send")))),
 
     # Inclure le CSS personnalisé
-    tags$head(
-      tags$style(HTML("
-        # body {
-        #   background-color: #1A1A1A;
-        #   color: #FFFFFF;
-        #   font-family: 'Courier New', Courier, monospace;
-        # }
-        body {
-          background-image: url('glados.JPG');
-          background-repeat: no-repeat;
-          height: 100px;
-          background-color: #cccccc;
-          # color: #33ff33;
-          color: #002300;
-          font-family: 'Fira Mono', 'Courier New', Courier, monospace;
-        }
-        .card {
-          # background: #111418;
-          background: #F0F8FF;
-          # opacity: .8;
-          border-radius: 12px;
-          box-shadow: 0 2px 16px #00000040;
-          padding: 24px;
-          margin-bottom: 30px;
-          border: 1px solid #222;
-        }
-        #chat_window {
-          background-color: #2E2E2E;
-          border-radius: 10px;
-          padding: 20px;
-          max-height: 400px;
-          overflow-y: auto;
-        }
-        .message {
-          margin: 10px 0;
-        }
-        .user {
-          text-align: right;
-        }
-        .SYNAPSE {
-          text-align: left;
-        }
-        .message p {
-          display: inline-block;
-          padding: 10px;
-          border-radius: 10px;
-          max-width: 70%;
-        }
-        .user p {
-          background-color: #007BFF;
-        }
-        .SYNAPSE p {
-          background-color: #6C757D;
-        }
-      "))
-    ),
+    tags$head(style_synapse()),
+
+    br(),
 
     fluidRow(
-      column(12, align = "center",
-             div(class = "card",
-              h1(textOutput(ns("title")))
-             )
-      )
+      column(12, align = "center",div(class = "card",
+              # h1(textOutput(ns("title")))))
+              h1(trad("Interface de communication avec SYNAPSE",values))))
+    ),
+    fluidRow(
+      column(12,div(class = "card chat-frame",div(id = ns("chat_window"))))
     ),
     fluidRow(
       column(12,
-             div(class = "card",
-              div(id = ns("chat_window"))
+             div(class = "chat-input-row",
+                 textInput(ns("question_text"), label = NULL,
+                           width = "100%", placeholder = "message..."),
+                 actionButton(ns("question_send"), "Send", class = "btn-primary")
              )
-      )
-    ),
-    fluidRow(
-      column(10,
-             textInput(ns("question_text"), label = NULL, placeholder = "message...")
       ),
-      column(2,
-             actionButton(ns("question_send"), "Send", class = "btn-primary")
-      )
+      column(12,p(trad("(Scroller pour voir les messages)",values)))
     ),
     gl_talk_shinyUI(ns("AI_audio"))
   )

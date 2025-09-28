@@ -182,7 +182,9 @@ EcranScanServer <- function(id,values,local) {
 
         # Créer HTML
         table_rows <- apply(mat, 1, function(row){
-          paste0("<tr>", paste0("<td style='padding: 20px 20px;'>", ifelse(is.na(row), "", row), "</td>", collapse=""), "</tr>")
+          paste0("<tr>", paste0("<td style='padding: 20px 20px;'>",
+                                ifelse(is.na(row), "", row), "</td>",
+                                collapse=""), "</tr>")
         })
         html_out <- paste0("<table style='border-collapse:separate; border-spacing: 0 2px;'><tbody>", paste(table_rows, collapse=""), "</tbody></table>")
 

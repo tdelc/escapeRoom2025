@@ -469,4 +469,263 @@ style_admin_theme <- function(primary = "#2563eb",   # bleu indigo
   htmltools::tags$style(htmltools::HTML(css))
 }
 
+#' Style HTML pour le monitoring
+#'
+#' @returns html
+#' @export
+style_monitoring <- function(){
 
+  tags$style(HTML("
+  .control-container{
+    width: 100%;
+    margin: 10px auto;
+    padding: 0 10px;
+    box-sizing: border-box;
+  }
+  .grid{ display:grid; gap:10px; width:100%; }
+  .row-5{ grid-template-columns:repeat(5,1fr); }
+  .row-3{ grid-template-columns:repeat(3,1fr); }
+
+  /* Boîte : ratio + positionnement relatif */
+  .frame-box{
+    position: relative;
+    background: #0f172a;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 4 / 3; /* ← ton ratio */
+  }
+
+  /* Le contenu doit coller aux bords */
+  .frame-fill{
+    position: absolute;
+    inset: 0;          /* top/right/bottom/left = 0 */
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Tout ce qui peut être rendu à l'intérieur doit remplir */
+  .frame-box iframe,
+  .frame-box object,
+  .frame-box embed,
+  .frame-box img,
+  .frame-box video,
+  .frame-box .shiny-html-output,
+  .frame-box .html-widget,
+  .frame-box > *{
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    border: 0;
+    box-sizing: border-box;
+  }
+
+  /* Responsive : replie si écran étroit */
+  @media (max-width: 1400px){ .row-5{ grid-template-columns:repeat(3,1fr); } }
+  @media (max-width: 1000px){
+    .row-5{ grid-template-columns:repeat(2,1fr); }
+    .row-3{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width: 640px){ .row-5, .row-3{ grid-template-columns:1fr; } }
+  ")
+  )
+}
+
+#' Style HTML pour synapse
+#'
+#' @param primary,accent, ... couleurs du thème
+#'
+#' @returns html
+#' @export
+style_synapse <- function(primary      = "#2563eb",  # bleu
+                          accent       = "#16a34a",  # vert
+                          bg           = "#eef2f7",  # fond
+                          user_text    = "#ffffff",
+                          user_bg      = "#2563eb",
+                          synapse_text = "#0f172a",
+                          synapse_bg   = "#ffffff") {
+
+  css <- paste0("
+  :root{
+    --primary:",      primary,      ";
+    --accent:",       accent,       ";
+    --bg:",           bg,           ";
+    --user_text:",    user_text,    ";
+    --user_bg:",      user_bg,      ";
+    --synapse_text:", synapse_text, ";
+    --synapse_bg:",   synapse_bg,   ";
+    --text:#0f172a;
+    --muted:#64748b;
+    --line:#e5e7eb;
+    --shadow:0 10px 30px #0f172a1a;
+    --shadow-sm:0 4px 16px #0f172a12;
+    --radius:14px;
+  }
+
+  /* Base */
+  html, body { height: 100%; }
+  body{
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Cartes */
+  .card{
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+
+  /* Titre */
+  .card h1{
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: .02em;
+    font-size: clamp(22px, 2.8vw, 34px);
+    text-align: center;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Fenêtre de chat : flex colonne, occupe la hauteur disponible si on l'encadre */
+  #chat_window{
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    height: 60vh;                 /* ← hauteur confortable */
+    min-height: 320px;
+    overflow-y: auto;
+    box-shadow: inset 0 1px 0 #00000006;
+  }
+
+  /* Messages */
+  .message{
+    display: flex;
+    margin: 10px 0;
+  }
+  .message.user{ justify-content: flex-end; }
+  .message.SYNAPSE{ justify-content: flex-start; }
+
+  .bubble{
+    max-width: min(75%, 820px);
+    padding: 10px 14px;
+    border-radius: 14px;
+    line-height: 1.4;
+    font-size: clamp(14px, 1.5vw, 16px);
+    box-shadow: 0 2px 10px #0f172a14;
+    position: relative;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  .message.user .bubble{
+    background: var(--user_bg);
+    color: var(--user_text);
+    border-top-right-radius: 6px;
+  }
+  .message.SYNAPSE .bubble{
+    background: var(--synapse_bg);
+    color: var(--synapse_text);
+    border-top-left-radius: 6px;
+    border: 1px solid #e2e8f0;
+  }
+
+  /* Petite queue de bulle (optionnel) */
+  # .message.user .bubble::after{
+  #   content:''; position:absolute; right:-6px; top:10px;
+  #   border-width:6px 0 6px 6px; border-style:solid;
+  #   border-color: transparent transparent transparent var(--user_bg);
+  # }
+  # .message.SYNAPSE .bubble::after{
+  #   content:''; position:absolute; left:-6px; top:10px;
+  #   border-width:6px 6px 6px 0; border-style:solid;
+  #   border-color: transparent var(--synapse_bg) transparent transparent;
+  # }
+
+  /* Barre de saisie */
+  .chat-input-row{
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .form-control{
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    transition: border .15s, box-shadow .15s;
+  }
+  .form-control:focus{
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
+    outline: none;
+  }
+
+  .btn-primary{
+    background: var(--primary) !important;
+    border: none !important;
+    color: #fff !important;
+    border-radius: 12px !important;
+    padding: 12px 18px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 6px 18px #2563eb33 !important;
+    transition: transform .06s, box-shadow .2s, background .15s !important;
+  }
+  .btn-primary:hover{
+    background: color-mix(in srgb, var(--primary) 88%, black) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px #2563eb3b !important;
+  }
+  .btn-primary:active{
+    transform: translateY(0);
+    box-shadow: 0 4px 12px #2563eb2a !important;
+  }
+
+  /* Scrollbar (chromium) */
+  #chat_window::-webkit-scrollbar{ width: 10px; }
+  #chat_window::-webkit-scrollbar-thumb{
+    background: #cbd5e1; border-radius: 10px;
+  }
+  #chat_window::-webkit-scrollbar-track{
+    background: #f1f5f9; border-radius: 10px;
+  }
+
+   /* Cadre qui fixe la hauteur totale du bloc chat */
+  .chat-frame{
+    height: 60vh;            /* ajuste librement : 420px, 70vh, etc. */
+    min-height: 320px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 0;
+    overflow: auto;        /* coupe ce qui dépasse le cadre */
+  }
+  /* Fenêtre scrollable (ordre chronologique normal) */
+  #chat_window{
+    height: 100%;
+    overflow-y: auto;        /* ← barre de défilement visible */
+    overflow-x: hidden;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: calc(var(--radius) - 2px);
+    display: block;          /* pas de tricks en flex */
+  }
+
+  /* Chaque message reste un bloc vertical */
+  .message{ margin: 10px 0; }
+  ")
+
+  tags$style(HTML(css))
+}

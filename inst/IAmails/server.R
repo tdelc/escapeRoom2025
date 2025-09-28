@@ -123,7 +123,7 @@ shinyServer(function(input, output, session) {
   # Chat
   output$AI <- renderUI({
     if (local$userType == "AI")
-      EcranAIUI("EcranAI")
+      EcranAIUI("EcranAI",values)
   })
 
   # Source

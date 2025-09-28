@@ -4,7 +4,7 @@
 \alias{valid_scan}
 \title{Valider un scan}
 \usage{
-valid_scan(session, values)
+valid_scan(session, values, scan_id)
 }
 \arguments{
 \item{session}{session shiny}
