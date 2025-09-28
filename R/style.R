@@ -81,8 +81,8 @@ style_list <- function(color_dark,color_light){
 
   tags$style(HTML(paste0("
     body {
-        background-image: url('glados.JPG');
-        background-repeat: no-repeat;
+        # background-image: url('glados.JPG');
+        # background-repeat: no-repeat;
         height: 100px;
         background-color: #cccccc;
         color: ",color_dark,";

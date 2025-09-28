@@ -53,7 +53,6 @@ load_db_trad <- function(id_drive){
 #' @returns text
 #' @export
 trad <- function(text,values){
-  print(text)
   row_trad <- values$db_trad %>% filter(fr == text)
   if (nrow(row_trad) == 0) return(text)
   else return(pull(row_trad[,values$language]))
