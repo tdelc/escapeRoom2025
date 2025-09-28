@@ -71,26 +71,29 @@ EcranAdminServer <- function(id,values) {
       output$synthese_admin <- renderDT({
 
         synthese_questions <- info_enigmes(values) %>%
-          filter(Type == "Question") %>%
-          select(ID_bloc,ID_step,ID_enigme,Ecran_Question = Ecran)
+          filter(Type == "Q") %>%
+          select(ID_bloc,ID_step,LabelStep_fr,
+                 ID_enigme,Info_admin,`Ecran Question` = Ecran)
 
-        synthese_indices <- actu_enigmes(values) %>%
-          filter(Type == "Question") %>%
-          select(ID_bloc,ID_step,ID_enigme,Ecran,FL_Valid) %>%
+        synthese_resultats <- actu_enigmes(values) %>%
+          filter(Type == "Q") %>%
           mutate(FL_Valid = case_when(
             FL_Valid == 1 ~  gicon("ok"),
             FL_Valid == 0 ~ gicon("remove"),
             TRUE ~ gicon("remove")
           )) %>%
-          pivot_wider(id_cols = c(ID_bloc,ID_step,ID_enigme),
-                      names_from = Ecran,
-                      names_prefix = "Ecran_Indice_",
-                      values_from = FL_Valid)
+          select(ID_bloc,ID_step,ID_enigme,FL_Valid)
 
-        synthese <- full_join(
-          synthese_questions,synthese_indices,
-          by = c("ID_bloc","ID_step","ID_enigme")
-        )
+        synthese_indices <- info_enigmes(values) %>%
+          filter(Type == "I") %>%
+          group_by(ID_bloc,ID_step,ID_enigme) %>%
+          summarise(`Ecran Indices` = paste(Ecran,collapse = "-"))
+
+        synthese <- synthese_questions %>%
+          full_join(synthese_resultats,by = c("ID_bloc","ID_step","ID_enigme")) %>%
+          full_join(synthese_indices,by = c("ID_bloc","ID_step","ID_enigme")) %>%
+          select(ID_bloc,ID_step,LabelStep_fr,ID_enigme,Info_admin,
+                 FL_Valid,`Ecran Question`,`Ecran Indices`)
 
         DT::datatable(synthese,
                       selection = 'none',
@@ -209,7 +212,8 @@ EcranAdminUI <- function(id) {
   ns <- NS(id)
 
   tagList(
-    style_global(),
+    # style_global(),
+    style_admin_theme(),
     div(class = "card center_text",h1("Gestion de l'escape room")),
     fluidRow(
       column(6,

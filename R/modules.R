@@ -9,11 +9,8 @@
 LabelUI <- function(id) {
   ns <- NS(id)
   tagList(
-    # column(6, offset = 3,
-      # h2(htmlOutput(ns("label")),class = "card center_text"),
-      h2(htmlOutput(ns("label"))),
-      imageOutput(ns("anim"),inline = TRUE)
-    # )
+    h2(htmlOutput(ns("label"))),
+    imageOutput(ns("anim"),inline = TRUE)
   )
 }
 
@@ -34,8 +31,7 @@ LabelServer <- function(id,db,path) {
 
       output$anim <- renderImage({
         filename <- normalizePath(file.path('./www/images/',db$Link))
-        list(src = filename)
-      }, deleteFile = FALSE)
+        list(src = filename)}, deleteFile = FALSE)
     })
 
 }

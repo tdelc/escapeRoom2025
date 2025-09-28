@@ -104,89 +104,77 @@ EcranQRUI <- function(id,values,local) {
       filter(FL_Valid == 0) %>%
       summarise(ID_bloc = min(ID_bloc)) %>% pull()
 
-    if (local$userType == "I"){
-      bloc_question <- info_enigmes(values) %>%
-        filter(Type == "Indice",ID_enigme == i_question(values,local)) %>%
-        pull(ID_bloc) %>% unique()
-    }
-    if (local$userType == "Q"){
-      bloc_question <- info_enigmes(values) %>%
-        filter(Type == "Question",ID_enigme == i_question(values,local)) %>%
-        pull(ID_bloc) %>% unique()
-    }
-
-    print(bloc_question)
+    bloc_question <- info_enigmes(values) %>%
+      filter(Type == local$userType,ID_enigme == i_question(values,local)) %>%
+      pull(ID_bloc) %>% unique()
 
     if (length(bloc_question) == 0) return(FALSE)
     return(bloc_min == bloc_question)
   })
 
-  db_i <- reactive({
+  db <- reactive({
     info_enigmes(values) %>%
-      filter(Type == "Indice",ID_enigme == i_question(values,local))
+      filter(Type == local$userType,ID_enigme == i_question(values,local))
   })
 
-  db_q <- reactive({
-    info_enigmes(values) %>%
-      filter(Type == "Question",ID_enigme == i_question(values,local))
-  })
+  LabelServer(ns("label"),db(),local$base_url)
 
-  if (local$userType == "I"){
-    if (nrow(db_i()) > 0){
-      LabelServer(ns("indic_label"),db_i(),local$base_url)
-    }
-  }
-
-  if (local$userType == "Q"){
-    if (nrow(db_q()) > 0){
-      LabelServer(ns("quest_label"),db_q(),local$base_url)
-    }
-  }
+  # if (local$userType == "I"){
+  #   if (nrow(db_i()) > 0){
+  #
+  #   }
+  # }
+  #
+  # if (local$userType == "Q"){
+  #   if (nrow(db_q()) > 0){
+  #     LabelServer(ns("quest_label"),db_q(),local$base_url)
+  #   }
+  # }
 
   choix <- function(){
-    temp <- db_q()
+    # temp <- db_q()
+    temp <- db()
     choix <- str_c(temp[,grep("Choix",colnames(temp))])
     choix[!is.na(choix)]
   }
 
   if (fl_bloc_ok()){
-    if (local$userType == "I" & nrow(db_i()) > 0){
+    if (local$userType == "I" & nrow(db()) > 0){
+      tagList(
+        style_escape_theme(),
+
+        # gl_talk_shinyUI(ns("talk")),
+
+        fluidRow(column(12,div(style = "height:50px"))),
+        LabelUI(ns("label"))
+
+      )
+    } else if (local$userType == "Q" & nrow(db()) > 0){
       tagList(
         # style_global(),
         style_escape_theme(),
 
         # gl_talk_shinyUI(ns("talk")),
 
-        fluidRow(column(12,div(style = "height:50px"))),
-        LabelUI(ns("indic_label"))
-
-      )
-    } else if (local$userType == "Q" & nrow(db_q()) > 0){
-      tagList(
-        style_global(),
-        style_escape_theme(),
-
-        # gl_talk_shinyUI(ns("talk")),
-
         div(class = "container-narrow",
             div(class = "card question-card",
-                h2(class = "category-title", db_q()$LabelStep),
-                if (db_q()$Format != "rien"){
+                h2(class = "category-title", db()$LabelStep),
+                if (db()$Format != "rien"){
                   div(class = "answer-group",
                       div(class = "answer-input",
-                          if (db_q()$Format == "radio") {
+                          if (db()$Format == "radio") {
                             radioButtons(ns("reponse"),label = "",
                                          choices = choix(),
                                          selected = NULL,inline = FALSE)
-                            } else if (db_q()$Format == "select") {
+                            } else if (db()$Format == "select") {
                               selectInput(ns("reponse"),label = "",
                                           choices = choix(),
                                           selected = NULL,multiple = TRUE)
-                            } else if (db_q()$Format == "checkbox") {
+                            } else if (db()$Format == "checkbox") {
                               checkboxGroupInput(ns("reponse"),label = "",
                                                  choices = choix(),
                                                  selected = NULL)
-                            } else if (db_q()$Format == "texte") {
+                            } else if (db()$Format == "texte") {
                               textInput(ns("reponse"),label = NULL,
                                         placeholder = "Réponse")
                             }
@@ -196,7 +184,7 @@ EcranQRUI <- function(id,values,local) {
                   )
                   },
                 uiOutput("code_src_message"),     # message (erreur/ok/info)
-                p(class = "question-label", LabelUI(ns("quest_label")))
+                p(class = "question-label", LabelUI(ns("label")))
             )
         )
       )

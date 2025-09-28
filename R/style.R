@@ -312,3 +312,161 @@ style_escape_theme <- function(primary = "#2b8ee5",
   ")))
 }
 
+#' Thème sobre pour l'interface d'administration
+#' Remplace style_global()
+#'
+#' @param primary Couleur principale (boutons/accents)
+#' @param accent  Couleur secondaire (hover/focus doux)
+#' @param bg      Couleur de fond
+#' @param card    Fond des cartes
+#' @param text    Couleur du texte principal
+style_admin_theme <- function(primary = "#2563eb",   # bleu indigo
+                              accent  = "#16a34a",   # vert pour hover
+                              bg      = "#f5f7fb",
+                              card    = "#ffffff",
+                              text    = "#0f172a") {
+
+  css <- paste0("
+  :root{
+    --primary:", primary, ";
+    --accent:",  accent,  ";
+    --bg:",      bg,      ";
+    --card:",    card,    ";
+    --text:",    text,    ";
+    --muted:#64748b;
+    --line:#e5e7eb;
+    --shadow:0 6px 20px #0f172a1a;
+    --shadow-sm:0 2px 10px #0f172a14;
+  }
+
+  /* Base */
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    line-height: 1.4;
+  }
+
+  /* Cartes (reprise de .card existant) */
+  .card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  /* Titres */
+  h1{
+    font-weight: 800;
+    letter-spacing: .02em;
+    margin: 0;
+    font-size: clamp(22px, 3vw, 32px);
+    color: var(--text);
+  }
+  h2{
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    font-size: clamp(18px, 2.2vw, 24px);
+    color: var(--text);
+  }
+
+  /* Bandeau titre principal centré */
+  .center_text{ text-align:center; }
+  .card.center_text{
+    background: linear-gradient(0deg, var(--card), var(--card));
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+
+  /* Sous-titres légers (tu utilises .panel-title) */
+  .panel-title{
+    color: var(--muted);
+    font-size: 14px;
+    margin: 4px 0 2px 0;
+  }
+
+  /* Boutons (actionButton) */
+  .btn{
+    border: none;
+    border-radius: 10px !important;
+    padding: 10px 14px;
+    font-weight: 600;
+    letter-spacing: .02em;
+    box-shadow: 0 4px 14px #00000012;
+    transition: transform .06s ease, box-shadow .2s ease, background .15s ease;
+    background: var(--primary);
+    color: #fff;
+    margin: 4px 6px 4px 0;
+  }
+  .btn:hover{
+    background: color-mix(in srgb, var(--primary) 88%, black);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px #0000001a;
+  }
+  .btn:active{
+    transform: translateY(0);
+    box-shadow: 0 3px 10px #00000012;
+  }
+  .btn:disabled, .btn[disabled]{
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
+  /* Inputs (textInput) */
+  .form-control{
+    background: #fff;
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .form-control:focus{
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
+    outline: none;
+  }
+
+  /* Radio (langue) en ligne + plus compacts */
+  .radio input[type='radio']{ margin-top: 2px; }
+  .radio label{ margin-right: 14px; }
+  .shiny-input-radiogroup{ margin-bottom: 8px; }
+
+  /* Datatable : compact + header sticky + zebra + hover doux */
+  .dataTables_wrapper .dataTables_filter input{
+    border-radius: 8px;
+    padding: 6px 10px;
+  }
+  table.dataTable thead th{
+    position: sticky; top: 0; z-index: 2;
+    background: #f8fafc !important;
+    border-bottom: 1px solid var(--line) !important;
+  }
+  table.dataTable tbody tr:nth-child(odd) { background: #fafafa; }
+  table.dataTable tbody tr:hover { background: #eef2ff; }
+  table.dataTable td, table.dataTable th{
+    padding: 8px 10px !important;
+    vertical-align: middle;
+  }
+
+  /* Petites grilles pour les champs + bouton à droite (déjà ok avec fluidRow/column) */
+  .input-group, .answer-group{ gap: 8px; }
+
+  /* États (si tu veux afficher des messages plus tard) */
+  .alert{ padding: 10px 12px; border-radius: 10px; font-size: 14px; margin-top: 8px; }
+  .alert-info{  background:#f1f5f9; color:#0f172a; border:1px solid var(--line); }
+  .alert-ok{    background:#ecfdf5; color:#064e3b; border:1px solid #10b98155; }
+  .alert-error{ background:#fef2f2; color:#7f1d1d; border:1px solid #ef444455; }
+
+  /* Petites icônes glyphicons si encore utilisées */
+  .glyphicon-ok{ color:#16a34a; }
+  .glyphicon-remove, .glyphicon-exclamation-sign{ color:#ef4444; }
+  ")
+
+  htmltools::tags$style(htmltools::HTML(css))
+}
+
+
