@@ -56,7 +56,11 @@ values <- reactiveValues(db_enigmes=load_db_enigmes(id_drive),
                          nb_mails_load = 0,
                          nb_mails_send = 0,
                          active_mails_load = FALSE,
-                         active_mails_send = FALSE
+                         active_mails_send = FALSE,
+                         heure_fin = lubridate::hour(Sys.time())+1,
+                         minute_fin = lubridate::minute(Sys.time()),
+                         help_ecran = "",
+                         help_texte = ""
                          )
 
 shinyServer(function(input, output, session) {

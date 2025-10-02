@@ -182,7 +182,7 @@ EcranScanServer <- function(id,values,local) {
 
         # Créer HTML
         table_rows <- apply(mat, 1, function(row){
-          paste0("<tr>", paste0("<td style='padding: 20px 20px;'>",
+          paste0("<tr>", paste0("<td style='padding: 10px 10px;'>",
                                 ifelse(is.na(row), "", row), "</td>",
                                 collapse=""), "</tr>")
         })
@@ -224,6 +224,19 @@ EcranScanServer <- function(id,values,local) {
           sum(actu_scans$FL_Valid), " / ",
           nrow(actu_scans), " (",
           round(100*sum(actu_scans$FL_Valid)/nrow(actu_scans)),"%)")
+      })
+
+      observe({
+        invalidateLater(1000, session)
+        isolate({
+
+          output$timing_scan <- renderText({
+
+            timing <- temps_restant(values$heure_fin,values$minute_fin)
+
+            paste0(timing$heures,"H ",timing$minutes,"M ",timing$secondes,"S")
+          })
+        })
       })
 
     }
@@ -282,15 +295,16 @@ EcranScanUI <- function(id,values,local) {
       fluidRow(
         column(3,
              div(class = "card",
-                 div(class = "panel-title", trad("Horloge système",values)),
-                 div(id = "digitalClock", class = "digital-clock", "--:--:--")
+                 div(class = "panel-title", trad("Temps restant",values)),
+                 div(class = "panel-title",textOutput(ns("timing_scan")))
+                 # div(id = "digitalClock", class = "digital-clock", "--:--:--")
              ),
              div(class = "card",
                  div(class = "panel-title", trad("Chargement des mails :",values)),
                  div(class = "panel-title",textOutput(ns("nb_mails_load"))),
                  div(class = "panel-title", trad("Envois de mails :",values)),
                  div(class = "panel-title",textOutput(ns("nb_mails_send"))),
-                 div(class = "panel-title", trad("Documents manquants à scanner :",values)),
+                 div(class = "panel-title", trad("Documents à scanner :",values)),
                  div(class = "panel-title",textOutput(ns("nb_scans")))
                  )
           ),

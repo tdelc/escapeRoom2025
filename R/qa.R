@@ -14,11 +14,12 @@ EcranQRServer <- function(id,values,local) {
 
       bonne_reponses <- info_enigmes(values) %>%
         filter(ID_enigme == i_question(values,local),
-               Type == "Question") %>%
+               Type == "Q") %>%
         select(starts_with("Reponse")) %>%
         mutate(Reponse_concat = reduce(across(
           everything(), ~ coalesce(., "")), str_c)) %>%
         pull(Reponse_concat)
+        # pull(Reponse1)
 
       user_reponses <- str_flatten(sort(input$reponse), "")
       bonne_reponses <- str_remove_all(str_to_lower(bonne_reponses),"[ _/-]")
@@ -26,7 +27,8 @@ EcranQRServer <- function(id,values,local) {
 
       if (user_reponses == bonne_reponses){
 
-        new_row <- info_enigmes(values) %>% filter(ID_enigme == i_question(values,local)) %>%
+        new_row <- info_enigmes(values) %>%
+          filter(ID_enigme == i_question(values,local)) %>%
           select(ID_bloc,ID_enigme,ID_step,Ecran,Type) %>% unique() %>%
           mutate(CD_admin = "action", timer = Sys.time(),FL_Valid = 1) %>%
           select(CD_admin,timer,ID_bloc,ID_enigme,ID_step,FL_Valid,Ecran,Type)
@@ -36,22 +38,25 @@ EcranQRServer <- function(id,values,local) {
           values$db_enigmes <- load_db_enigmes(values$id_drive)
         }
 
-        updateTextInput(session = session,inputId = "reponse",placeholder = "Réponse",value = "")
+        # updateTextInput(session = session,
+        #                 inputId = "reponse",placeholder = "Réponse",value = "")
+        values$help_texte <- ""
+        values$help_ecran <- ""
         output$text_erreur <- renderUI("")
 
       }else{
 
         # Rebooter la step
         id_step <- info_enigmes(values) %>%
-          filter(ID_enigme == i_question(values,local),Type == "Question") %>%
+          filter(ID_enigme == i_question(values,local),Type == "Q") %>%
           pull(ID_step) %>% unique()
 
         label_step <- info_enigmes(values) %>%
-          filter(ID_step == id_step,Type == "Question",Ecran == local$userEcran) %>%
+          filter(ID_step == id_step,Type == "Q",Ecran == local$userEcran) %>%
           pull(LabelStep) %>% unique()
 
         label_erreur <- info_enigmes(values) %>%
-          filter(ID_enigme == i_question(values,local),Type == "Question",
+          filter(ID_enigme == i_question(values,local),Type == "Q",
                  Ecran == local$userEcran) %>%
           pull(LabelErreur) %>% unique()
 
@@ -80,6 +85,13 @@ EcranQRServer <- function(id,values,local) {
 
     })
 
+    observeEvent(values$help_texte,{
+      if (local$userEcran == values$help_ecran){
+        output$text_erreur <- renderUI(values$help_texte)
+      }else{
+        ""
+      }
+    })
   }
   )
 }
@@ -113,8 +125,13 @@ EcranQRUI <- function(id,values,local) {
   })
 
   db <- reactive({
-    info_enigmes(values) %>%
-      filter(Type == local$userType,ID_enigme == i_question(values,local))
+    if (fl_bloc_ok()){
+      info_enigmes(values) %>%
+        filter(Type == local$userType,ID_enigme == i_question(values,local))
+    }else{
+      tibble(LabelStep=trad("Interface verrouillée",values),
+             Format="rien",Label="",Link=NA)
+    }
   })
 
   LabelServer(ns("label"),db(),local$base_url)
@@ -138,7 +155,8 @@ EcranQRUI <- function(id,values,local) {
     choix[!is.na(choix)]
   }
 
-  if (fl_bloc_ok()){
+  # if (fl_bloc_ok()){
+  if (TRUE){
     if (local$userType == "I" & nrow(db()) > 0){
       tagList(
         style_escape_theme(),
@@ -179,10 +197,10 @@ EcranQRUI <- function(id,values,local) {
                                         placeholder = "Réponse")
                             }
                       ),
-                      actionButton(ns("send"), "Envoyer", class = "btn-answer"),
-                      uiOutput(ns("text_erreur"))
+                      actionButton(ns("send"), "Envoyer", class = "btn-answer")
                   )
                   },
+                uiOutput(ns("text_erreur")),
                 uiOutput("code_src_message"),     # message (erreur/ok/info)
                 p(class = "question-label", LabelUI(ns("label")))
             )

@@ -117,13 +117,13 @@ style_list <- function(color_dark,color_light){
       }
       .doc-list {
         font-size: 1.15em;
-        font-size: 1em;
         padding-left: 8px;
         margin-top: 6px;
       }
       .doc-item {
         border-bottom: 1px dashed #2f6c2f;
         padding: 8px 0 5px 0;
+        padding: 4px 0 3px 0;
         display: flex;
         align-items: center;
       }
@@ -728,4 +728,244 @@ style_synapse <- function(primary      = "#2563eb",  # bleu
   ")
 
   tags$style(HTML(css))
+}
+
+# Thème pour l'écran "code source" (look IT/terminal)
+style_source_theme <- function(primary = "#22c55e",   # vert néon
+                               accent  = "#a3e635",   # vert clair
+                               bg      = "#0b1220",   # fond terminal
+                               panel   = "#0f172a",   # panneau
+                               border  = "#1f2a3a",   # bord
+                               text    = "#e2e8f0"){  # texte clair
+  css <- glue::glue("
+  :root {{
+    --primary:{primary}; --accent:{accent};
+    --bg:{bg}; --panel:{panel}; --border:{border}; --text:{text};
+    --muted:#94a3b8; --warn:#f59e0b; --danger:#ef4444;
+    --radius:14px; --shadow:0 10px 28px #0000005a;
+  }}
+
+  body {{ background: var(--bg); color: var(--text);
+          font-family: 'Fira Mono','Courier New',monospace; }}
+
+  /* Container + cartes */
+  .src-container {{ max-width: 1100px; margin: 20px auto; padding: 0 12px; }}
+  .src-card {{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px;
+    margin-bottom: 18px;
+  }}
+
+  /* Bandeau façon éditeur */
+  .src-header {{
+    display:flex; align-items:center; justify-content:center;
+    position:relative; padding: 10px 14px; margin-bottom:14px;
+    border:1px solid var(--border); border-radius:12px;
+    background: linear-gradient(180deg, #101a2c, #0c1526);
+  }}
+  .src-header .dots {{
+    position:absolute; left:10px; display:flex; gap:6px;
+  }}
+  .src-header .dot {{
+    width:12px; height:12px; border-radius:50%;
+    box-shadow: 0 0 8px #00000060 inset;
+  }}
+  .dot.red   {{ background:#ff5f56; }}
+  .dot.amber {{ background:#ffbd2e; }}
+  .dot.green {{ background:#27c93f; }}
+  .src-header h1, .src-header h2 {{
+    margin:0; letter-spacing:.04em; font-weight:800;
+    font-size: clamp(18px, 2.6vw, 28px);
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    -webkit-background-clip:text; background-clip:text; color: transparent;
+    text-transform: uppercase;
+  }}
+
+  /* Inputs */
+  .form-control {{
+    background:#0b1220; color:var(--text);
+    border: 1px solid var(--border); border-radius:12px;
+    padding: 10px 12px; transition: border .15s, box-shadow .15s;
+  }}
+  .form-control:focus {{
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent);
+    outline:none;
+  }}
+
+  /* Boutons */
+  .btn, .btn-primary, .btn-danger {{
+    border:none; border-radius:12px; padding:10px 16px; font-weight:700;
+    letter-spacing:.02em; cursor:pointer;
+  }}
+  .btn-primary {{ background: var(--primary); color:#0a0f1a; }}
+  .btn-primary:hover {{ filter: brightness(.9); }}
+  .btn-danger  {{ background: var(--danger); color:#fff; }}
+  .btn-danger:hover  {{ filter: brightness(.9); }}
+
+  /* Bloc drag & drop (sortable::rank_list) */
+  .rank-list-container {{ margin: 0; }}
+  .rank-list {{
+    display: grid; gap: 10px; padding: 0; margin: 0;
+    list-style: none;
+  }}
+  .rank-list-item {{
+    background: #0a1426;
+    text: #0b1220;
+    border: 1px dashed #2b3b52;
+    color: var(--text);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: grab; user-select: none;
+    transition: transform .06s ease, background .15s ease, border-color .15s;
+    background: #0a1426 !important;   /* fond sombre forcé */
+    color: var(--text) !important;    /* texte clair */
+    border: 1px dashed #2b3b52 !important;
+  }}
+  .rank-list-item:hover {{
+    background:#0e1a33;
+    border-color:#3b4f6b;
+    text: #0b1220;
+  }}
+  .rank-list-item .badge {{
+    min-width: 26px; height: 26px; border-radius: 8px;
+    /*background: var(--primary); color:#0a0f1a; font-weight:900;*/
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 40%, transparent);
+  }}
+
+  /* Légendes */
+  .src-subtitle {{
+    color: var(--muted); margin: 6px 0 12px 0; letter-spacing:.02em;
+    font-size: 14px;
+  }}
+
+  /* Bandeau terminal d'aide */
+  .src-help {{
+    background:#071121; border:1px solid #1a2740; border-radius:12px;
+    padding:12px; color:#cbd5e1; font-size:13px;
+  }}
+
+  .modal-dialog{{
+    color: var(--border);
+  }}
+  ")
+htmltools::tags$style(htmltools::HTML(css))
+}
+
+style_source_matrix <- function(){
+
+  css <- "
+  /* Fond général façon terminal */
+  body {
+    background: #000000;
+    color: #00ff66;
+    font-family: 'Fira Mono','Courier New', monospace;
+  }
+
+  .src-container {{ max-width: 1100px; margin: 20px auto; padding: 0 12px; }}
+
+  /* Carte sombre translucide */
+  .src-card {
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #00ff66;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 0 12px #00ff6699;
+  }
+
+  /* Bandeau titre */
+  .src-header {
+    border: none;
+    background: #000000;
+    color: #00ff66;
+    text-align: center;
+    position: relative;
+    padding: 12px;
+  }
+  .src-header h1 {
+    font-family: 'Fira Mono','Courier New', monospace;
+    font-size: clamp(20px, 3vw, 30px);
+    margin: 0;
+    color: #00ff66;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    display: inline-block;
+  }
+  .src-header h1::after {
+    content: '▋'; /* curseur clignotant */
+    margin-left: 6px;
+    animation: blink 1s step-start infinite;
+    color: #00ff66;
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  /* Aide/explications */
+  .src-help {
+    font-size: 13px;
+    color: #00ff66;
+    border-left: 2px solid #00ff66;
+    padding-left: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Input text */
+  .form-control {
+    background: #000000;
+    color: #00ff66;
+    border: 1px solid #00ff66;
+    border-radius: 6px;
+    font-family: 'Fira Mono','Courier New', monospace;
+  }
+  .form-control:focus {
+    outline: none;
+    box-shadow: 0 0 8px #00ff66;
+  }
+
+  /* Boutons */
+  .btn, .btn-primary, .btn-danger {
+    background: #000000;
+    color: #00ff66;
+    border: 1px solid #00ff66;
+    border-radius: 6px;
+    font-family: 'Fira Mono','Courier New', monospace;
+    text-transform: uppercase;
+    padding: 8px 14px;
+  }
+  .btn:hover {
+    background: #00ff66;
+    color: #000000;
+    box-shadow: 0 0 10px #00ff66;
+  }
+
+  /* Items drag & drop (règles) */
+  .rank-list-item {
+    background: #000000 !important;
+    color: #00ff66 !important;
+    border: 1px dashed #00ff66 !important;
+    font-family: 'Fira Mono','Courier New', monospace;
+    padding: 10px 14px;
+    border-radius: 6px;
+    box-shadow: 0 0 6px #00ff6644;
+    transition: background .2s, transform .1s;
+  }
+  .rank-list-item:hover {
+    background: #001a0a !important;
+    transform: translateX(4px);
+  }
+
+  .modal-dialog{{
+    color: #000000;
+  }}
+"
+
+  htmltools::tags$style(htmltools::HTML(css))
+
 }

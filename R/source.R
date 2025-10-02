@@ -50,8 +50,7 @@ EcranSourceServer <- function(id,values,local) {
   moduleServer(id, function(input, output, session) {
 
     init_label <- reactive({
-      if (values$language == "fr") init_label <- init_label_fr
-      else init_label <- init_label_nl
+      if (values$language == "fr") init_label_fr else init_label_nl
     })
 
     rank_ui <- reactiveVal(
@@ -180,29 +179,53 @@ Ze heeft tijd gehad om",values$nb_mails_send,"e-mails te versturen.")
 #'
 #' @returns shiny ui
 #' @export
-EcranSourceUI <- function(id,values,local) {
+EcranSourceUI <- function(id, values, local) {
   ns <- NS(id)
 
   tagList(
-    tags$style(
-      ".center {
-          display: flex;
-          justify-content: center
-          }"
-    ),
+    # tags$head(style_source_theme()),  # ← active le thème
+    tags$head(style_source_matrix()),  # ← active le thème
 
-    ### CATEGORIE ###
-    column(12,h2(trad("Modification du code Source de Synapse",values)),class = "center"),
-    fluidRow(column(12,div(style = "height:300px;"))),
+    div(class = "src-container",
 
-    textInput(ns("new"),trad("Ajouter une nouvelle priorité",values)),
+        # Bandeau titre type éditeur (avec “pastilles”)
+        div(class = "src-card",
+            div(class = "src-header",
+                div(class = "dots",
+                    span(class="dot red"), span(class="dot amber"), span(class="dot green")
+                ),
+                h1(trad("Modification du code source de SYNAPSE", values))
+            )
+            # div(class = "src-help",
+            #     HTML(trad(
+            #       "Déplace les règles pour définir l'ordre de <b>priorité</b>.
+            #      Tu peux aussi <b>ajouter</b> une règle personnalisée.",
+            #       values))
+            # )
+        ),
 
-    ### LABEL ###
-    column(12,h3(trad("Modifier les ordres de priorités",values)),class = "center"),
+        # Ajout d'une règle
+        div(class = "src-card",
+            h2(trad("Ajouter une nouvelle priorité (facultatif)", values)),
+            div(class = "src-subtitle",
+                trad("Ex. « Interrompre l'envoi de mails dès que les preuves sont suffisantes »", values)),
+            textInput(ns("new"), label = NULL, placeholder = trad("Écris ici la nouvelle règle…", values), width = "100%")
+        ),
 
-    uiOutput(ns("rank_ui_out")),
+        # Tri des priorités (rank_list)
+        div(class = "src-card",
+            h2(trad("Modifier l'ordre des priorités", values)),
+            div(class = "src-subtitle",
+                trad("Glisse-dépose pour classer de la plus importante (haut) à la moins importante (bas).", values)),
+            uiOutput(ns("rank_ui_out"))
+        ),
 
-    column(12,actionButton(ns("send"),trad("Envoyer",values)),class = "center"),
-    fluidRow(column(12,div(style = "height:50px;")))
+        # Bouton de validation
+        div(class = "src-card", style = "text-align:center",
+            actionButton(ns("send"), trad("Reprogrammer SYNAPSE", values),
+                         class = "btn-primary")
+        )
+    )
   )
 }
+
