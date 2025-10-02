@@ -12,7 +12,7 @@ library(text2speech)
 library(googleLanguageR)
 library(later)
 library(sortable)
-# library(escapeRoom)
+library(escapeRoom)
 
 source(".env.R")
 

@@ -173,6 +173,11 @@ EcranAdminServer <- function(id,values) {
         values$minute_fin <- as.numeric(input$minute_fin)
       })
 
+      # observe({
+      #   invalidateLater(5000, session)
+      #   values$db_scans <- load_db_scans(values$id_drive)
+      # })
+
       observe({
         invalidateLater(1000*5, session)
         isolate({

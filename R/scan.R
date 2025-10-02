@@ -140,35 +140,11 @@ EcranScanServer <- function(id,values,local) {
         })
       }, delay = 1)
 
-      # observeEvent(check_valid,{
-      #   req(check_valid())
-      #   if (check_valid() == TRUE){
-      #     valid_scan(session,values)
-      #     scan_id(NULL)
-      #     valid_scan <- FALSE
-      #     local$userEcran <- ""
-      #   }
-      # })
-
-      # observeEvent(input$scan_send, {
-      #   values$scan_id <- as.numeric(input$scan_num)
-      #   if (check_scan(values,values$scan_id) == TRUE){
-      #     values$valid_scan <- action_scan(session,values,values$scan_id)
-      #   }
-      # })
-
       # Listing des scans
       output$listing_scan <- renderText({
 
-        actu_scans <- info_scans(values) %>%
-          select(ID,Texte) %>%
-          left_join(actu_scans(values) %>% select(ID,FL_Valid))
-
-        # actu_scans <- actu_scans(values) %>%
-        #   select(ID,FL_Valid) %>%
-        #   left_join(info_scans(values) %>% select(ID,Texte))
-
-        actu_scans <- actu_scans %>%
+        actu_scans <- info_scans(values) %>% select(ID,Texte) %>%
+          left_join(actu_scans(values) %>% select(ID,FL_Valid)) %>%
           mutate(Texte_HTML = if_else(FL_Valid == 1,
                                       paste0("<s>",Texte,"</s>"),Texte))
 
