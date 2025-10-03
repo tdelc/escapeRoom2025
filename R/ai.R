@@ -269,6 +269,14 @@ EcranAIServer <- function(id,values) {
         callModule(gl_talk_shiny, "AI_audio", transcript = vocal_AI_admin, controls = FALSE,
                    languageCode = lang_code, gender = "NEUTRAL", pitch = -5)
       })
+
+      # Jouer quand un bouton du soundboard est pressé
+      observeEvent(values$play_sound$ts, {
+        req(values$play_sound$url)
+        print("go")
+        shinyjs::runjs(sprintf("window.__sfx.play('%s');",
+                               paste0(values$play_sound$url)))
+      }, ignoreInit = TRUE)
     }
   )
 }
@@ -340,6 +348,21 @@ EcranAIUI <- function(id,values) {
         };
       })();
     ")),
+
+    tags$head(tags$script(HTML("
+      (function(){
+        // Gestionnaire sfx global
+        window.__sfx = {
+          play: function(url){
+            try {
+              audio = new Audio(url);
+              audio.currentTime = 0; // rejoue dès le début
+              audio.play();
+            } catch(e){}
+          }
+        };
+      })();
+    "))),
 
     # Script pour activer "Entrée = envoyer"
     tags$script(HTML(sprintf("

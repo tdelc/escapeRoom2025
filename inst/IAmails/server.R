@@ -95,6 +95,7 @@ shinyServer(function(input, output, session) {
       EcranQRServer("EcranQR",values,local)
       EcranAIServer("EcranAI",values)
       EcranSourceServer("EcranSource",values,local)
+      EcranSoundServer("EcranSound",values)
     })
 
   })
@@ -135,6 +136,11 @@ shinyServer(function(input, output, session) {
   output$source <- renderUI({
     if (local$userType == "O")
       EcranSourceUI("EcranSource",values,local)
+  })
+
+  output$source <- renderUI({
+    if (local$userType == "X")
+      EcranSoundUI("EcranSound")
   })
 }
 )
