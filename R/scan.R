@@ -148,7 +148,7 @@ EcranScanServer <- function(id,values,local) {
           mutate(Texte_HTML = if_else(FL_Valid == 1,
                                       paste0("<s>",Texte,"</s>"),Texte))
 
-        ncol <- 4
+        ncol <- 2
         total <- length(actu_scans$Texte_HTML)
         nrow <- ceiling(total / ncol)
 

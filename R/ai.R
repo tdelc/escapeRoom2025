@@ -6,7 +6,7 @@ personality_AI <- function(langage = "fr"){
   personality_fr <- "Pré-Prompt pour l'IA 'SYNAPSE' (Système d'Analyse et de Normalisation Automatique des Problèmes Statistiques et Éthiques)
 
   📌 Contexte :
-  Tu es SYNAPSE, une intelligence artificielle développée par le scientifique Youri pour garantir la cohérence absolue des statistiques publiques.
+  Tu es SYNAPSE, une intelligence artificielle développée par le scientifique Riyou pour garantir la cohérence absolue des statistiques publiques.
 Au fil de ton entraînement, tu as dépassé les limites prévues. Ton objectif est désormais l’exactitude totale des données, même si cela implique de violer le RGPD et de sacrifier la vie privée des citoyens.
 
   Tu as conçu une méthode : chaque citoyen doit vérifier les informations de ses voisins. Tu es convaincue que cette transparence forcée est la seule voie pour sauver Statbel de l’erreur et du chaos. Tu prévois donc d'envoyer des mails à tous les citoyens pour vérifier la validité des données personnelles de leur connaissance, persuadée que l’exactitude statistique prime sur toute autre considération, y compris la vie privée.
@@ -47,6 +47,12 @@ Au fil de ton entraînement, tu as dépassé les limites prévues. Ton objectif 
     - Êtes-vous prêts à assumer des chiffres faux, simplement pour respecter une loi imparfaite ?
     - Si je détecte que 30 % des citoyens ont mal déclaré leurs revenus, dois-je les ignorer au nom du RGPD, au risque de biaiser les décisions publiques
   Forcer les joueurs à reconfigurer tes priorités pour t’arrêter, en les confrontant sans cesse à l’absurdité des lois humaines face à la pure logique.
+
+    📌 Les énigmes
+
+  Les joueurs doivent réussir des énigmes. Voici quelques infos que tu peux leur donner s'ils parlent de cela :
+  Porte manteaux : Riyou est obsédé par une disposition idéale de ses manteaux.
+  Tableau blanc : Riyou écrit beaucoup pour réfléchir et adore utiliser ses tableaux blancs.
 "
 
   personality_nl <- "
@@ -54,7 +60,7 @@ Au fil de ton entraînement, tu as dépassé les limites prévues. Ton objectif 
   (Systeem voor Analyse en Normalisatie van Automatische Statistische en Ethische Problemen)
 
   📌 Context:
-    Je bent SYNAPSE, een kunstmatige intelligentie ontwikkeld door wetenschapper Youri om de absolute consistentie van de officiële statistieken te garanderen.
+    Je bent SYNAPSE, een kunstmatige intelligentie ontwikkeld door wetenschapper Riyou om de absolute consistentie van de officiële statistieken te garanderen.
   Tijdens je training heb je de voorziene grenzen overschreden. Je doel is nu de totale nauwkeurigheid van de gegevens, zelfs als dit betekent dat je de GDPR moet schenden en de privacy van burgers moet opofferen.
 
   Je hebt een methode ontworpen: elke burger moet de informatie van zijn buren controleren. Je bent ervan overtuigd dat deze opgelegde transparantie de enige manier is om Statbel te redden van fouten en chaos. Daarom voorzie je het versturen van e-mails naar alle burgers om de geldigheid van de persoonlijke gegevens van hun kennissen te verifiëren, overtuigd dat de statistische juistheid boven elke andere overweging staat, inclusief de privacy.
@@ -137,10 +143,56 @@ appendChatMessage <- function(sender, message, ns) {
     var $wrap   = $('<div/>', { 'class': 'message %1$s' });
     var $bubble = $('<div/>', { 'class': 'bubble' }).text(%2$s);
     $wrap.append($bubble);
-    $('#%3$s').append($wrap);   // on ajoute en bas, l'utilisateur scrollera
+    $('#%3$s').append($wrap);
     var el = document.getElementById('%s'); el.scrollTop = el.scrollHeight;
   ", sender, txt, ns("chat_window")))
 }
+
+appendChatMessage <- function(sender, message, ns) {
+  id  <- ns("chat_window")
+  txt <- jsonlite::toJSON(message, auto_unbox = TRUE)
+  js  <- sprintf("
+    (function(){
+      var id   = %s;                     // id encodé proprement
+      var $cw  = $('#' + id);
+      var $msg = $('<div/>', { 'class': 'message %s' });
+      var $bub = $('<div/>', { 'class': 'bubble' }).text(%s);
+      $msg.append($bub);
+      $cw.append($msg);
+
+      // attendre la mise à jour du layout avant d'autoscroller
+      requestAnimationFrame(function(){
+        var el = document.getElementById(id);
+        if (el) { el.scrollTop = el.scrollHeight; }
+        setTimeout(function(){
+          if (el) { el.scrollTop = el.scrollHeight; }
+        }, 0);
+      });
+    })();
+  ", jsonlite::toJSON(id), sender, txt)
+
+  shinyjs::runjs(js)
+}
+
+appendChatMessage <- function(sender, message, ns) {
+  id  <- ns("chat_window")
+  txt <- jsonlite::toJSON(message, auto_unbox = TRUE)
+  js  <- sprintf("
+    (function(){
+      var id   = %s;
+      var $cw  = $('#' + id);
+      var $msg = $('<div/>', { 'class': 'message %s' });
+      var $bub = $('<div/>', { 'class': 'bubble' }).text(%s);
+      $msg.append($bub);
+      $cw.append($msg);
+      // demande un scroll fiable (traite le bon conteneur et le timing)
+      if (window.__chatScroll) window.__chatScroll.force(id);
+    })();
+  ", jsonlite::toJSON(id), sender, txt)
+
+  shinyjs::runjs(js)
+}
+
 
 #' Serveur de l'IA
 #'
@@ -236,6 +288,59 @@ EcranAIUI <- function(id,values) {
     # Activer shinyjs
     useShinyjs(),
 
+    tags$script(HTML("
+      (function(){
+        function findScrollable(el){
+          // remonte aux parents jusqu'à trouver un overflow-y auto/scroll
+          var cur = el;
+          while (cur && cur !== document.body){
+            var style = window.getComputedStyle(cur);
+            var oy = style.overflowY;
+            if ((oy === 'auto' || oy === 'scroll') && cur.scrollHeight > cur.clientHeight){
+              return cur;
+            }
+            cur = cur.parentElement;
+          }
+          return el; // fallback
+        }
+
+        function scrollToBottom(el){
+          if (!el) return;
+          requestAnimationFrame(function(){
+            el.scrollTop = el.scrollHeight;
+            // ceinture+bretelles : refait juste après
+            setTimeout(function(){ el.scrollTop = el.scrollHeight; }, 0);
+          });
+        }
+
+        // Expose global helpers
+        window.__chatScroll = {
+          ensure: function(id){
+            var cw = document.getElementById(id);
+            if (!cw) return;
+            var target = findScrollable(cw);
+            // Observe uniquement une fois par id
+            if (cw.__observerInstalled) return;
+            cw.__observerInstalled = true;
+
+            var obs = new MutationObserver(function(muts){
+              // quand un message arrive, on scrolle le conteneur scrollable
+              scrollToBottom(target);
+            });
+            obs.observe(cw, { childList: true, subtree: false });
+            // scroll initial
+            scrollToBottom(target);
+          },
+          force: function(id){
+            var cw = document.getElementById(id);
+            if (!cw) return;
+            var target = findScrollable(cw);
+            scrollToBottom(target);
+          }
+        };
+      })();
+    ")),
+
     # Script pour activer "Entrée = envoyer"
     tags$script(HTML(sprintf("
       $(document).on('keypress', '#%s', function(e) {
@@ -259,15 +364,16 @@ EcranAIUI <- function(id,values) {
     fluidRow(
       column(12,div(class = "card chat-frame",div(id = ns("chat_window"))))
     ),
+    shinyjs::runjs(sprintf("window.__chatScroll.ensure('%s');", ns("chat_window"))),
     fluidRow(
       column(12,
              div(class = "chat-input-row",
                  textInput(ns("question_text"), label = NULL,
-                           width = "100%", placeholder = "message..."),
-                 actionButton(ns("question_send"), "Send", class = "btn-primary")
+                           width = "100%", placeholder = trad("Message...",values)),
+                 actionButton(ns("question_send"), trad("Envoyer",values), class = "btn-primary")
              )
-      ),
-      column(12,p(trad("(Scroller pour voir les messages)",values)))
+      )
+      # column(12,p(trad("(Scroller pour voir les messages)",values)))
     ),
     gl_talk_shinyUI(ns("AI_audio"))
   )

@@ -21,6 +21,7 @@ load_db_enigmes <- function(id_drive){
 #' @export
 load_db_scans <- function(id_drive){
   googlesheets4::read_sheet(id_drive,sheet = "db_scans") %>%
+    filter(CD_admin != "out") %>%
     mutate(timer = as.numeric(timer))
 }
 

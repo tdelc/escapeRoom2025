@@ -19,7 +19,6 @@ EcranQRServer <- function(id,values,local) {
         mutate(Reponse_concat = reduce(across(
           everything(), ~ coalesce(., "")), str_c)) %>%
         pull(Reponse_concat)
-        # pull(Reponse1)
 
       user_reponses <- str_flatten(sort(input$reponse), "")
       bonne_reponses <- str_remove_all(str_to_lower(bonne_reponses),"[ _/-]")
@@ -194,7 +193,7 @@ EcranQRUI <- function(id,values,local) {
                                                  selected = NULL)
                             } else if (db()$Format == "texte") {
                               textInput(ns("reponse"),label = NULL,
-                                        placeholder = "Réponse")
+                                        placeholder = trad("Réponse",values))
                             }
                       ),
                       actionButton(ns("send"), "Envoyer", class = "btn-answer")

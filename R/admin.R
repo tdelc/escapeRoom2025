@@ -51,6 +51,9 @@ EcranAdminServer <- function(id,values) {
           sheet_append(values$id_drive, data = new_row,sheet = "db_enigmes")
           values$db_enigmes <- load_db_enigmes(values$id_drive)
         }
+
+        values$help_texte <- ""
+        values$help_ecran <- ""
       })
 
       observeEvent(input$reculer,{

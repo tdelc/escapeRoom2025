@@ -116,7 +116,7 @@ style_list <- function(color_dark,color_light){
         color: ",color_light,";
       }
       .doc-list {
-        font-size: 1.15em;
+        font-size: 1.8em;
         padding-left: 8px;
         margin-top: 6px;
       }
@@ -605,6 +605,7 @@ style_synapse <- function(primary      = "#2563eb",  # bleu
     min-height: 320px;
     overflow-y: auto;
     box-shadow: inset 0 1px 0 #00000006;
+    display: block;
   }
 
   /* Messages */
@@ -612,8 +613,8 @@ style_synapse <- function(primary      = "#2563eb",  # bleu
     display: flex;
     margin: 10px 0;
   }
-  .message.user{ justify-content: flex-end; }
-  .message.SYNAPSE{ justify-content: flex-start; }
+  .message.user{ justify-content: flex-end; padding-right: 15px;}
+  .message.SYNAPSE{ justify-content: flex-start; padding-left: 15px;}
 
   .bubble{
     max-width: min(75%, 820px);
@@ -703,7 +704,7 @@ style_synapse <- function(primary      = "#2563eb",  # bleu
 
    /* Cadre qui fixe la hauteur totale du bloc chat */
   .chat-frame{
-    height: 60vh;            /* ajuste librement : 420px, 70vh, etc. */
+    height: 70vh;            /* ajuste librement : 420px, 70vh, etc. */
     min-height: 320px;
     background: #fff;
     border: 1px solid var(--line);
@@ -961,9 +962,9 @@ style_source_matrix <- function(){
     transform: translateX(4px);
   }
 
-  .modal-dialog{{
-    color: #000000;
-  }}
+  .modal-dialog {
+    color: #000000 !important;
+  }
 "
 
   htmltools::tags$style(htmltools::HTML(css))
