@@ -83,7 +83,6 @@ EcranSoundServer <- function(id, values,
           )
         }, ignoreInit = TRUE)
       })
-      print(values$play_sound)
     })
   })
 }

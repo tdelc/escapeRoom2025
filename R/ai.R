@@ -273,7 +273,6 @@ EcranAIServer <- function(id,values) {
       # Jouer quand un bouton du soundboard est pressé
       observeEvent(values$play_sound$ts, {
         req(values$play_sound$url)
-        print("go")
         shinyjs::runjs(sprintf("window.__sfx.play('%s');",
                                paste0(values$play_sound$url)))
       }, ignoreInit = TRUE)
