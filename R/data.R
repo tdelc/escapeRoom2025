@@ -73,11 +73,13 @@ info_enigmes <- function(values){
     db$LabelStep <- db$LabelStep_fr
     db$Label <- db$Label_fr
     db$LabelErreur <- db$LabelErreur_fr
+    db$Help <- db$Help_fr
   }
   if (values$language == "nl"){
     db$LabelStep <- db$LabelStep_nl
     db$Label <- db$Label_nl
     db$LabelErreur <- db$LabelErreur_nl
+    db$Help <- db$Help_nl
   }
   return(db)
 }

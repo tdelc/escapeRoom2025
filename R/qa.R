@@ -37,6 +37,10 @@ EcranQRServer <- function(id,values,local) {
           values$db_enigmes <- load_db_enigmes(values$id_drive)
         }
 
+        values$play_sound <- list(
+          name = "Notif 1",url  = file.path("sfx", "Notif 1.mp3"),ts   = Sys.time()
+        )
+
         # updateTextInput(session = session,
         #                 inputId = "reponse",placeholder = "Réponse",value = "")
         values$help_texte <- ""

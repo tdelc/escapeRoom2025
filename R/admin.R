@@ -23,6 +23,10 @@ EcranAdminServer <- function(id,values) {
 
       observeEvent(input$send_message_text,{
         values$text_AI_admin <- input$message_text
+
+        values$play_sound <- list(
+          name = "Message envoyé",url  = file.path("sfx", "Message envoyé.mp3"),ts   = Sys.time()
+        )
       })
 
       observeEvent(input$send_message_vocal,{
@@ -69,13 +73,17 @@ EcranAdminServer <- function(id,values) {
         }
       })
 
+      observeEvent(input$maj_scans,{
+        values$db_scans <- load_db_scans(values$id_drive)
+      })
+
       gicon <- function(x) as.character(icon(x, lib = "glyphicon"))
 
       output$synthese_admin <- renderDT({
 
         synthese_questions <- info_enigmes(values) %>%
           filter(Type == "Q") %>%
-          select(ID_bloc,ID_step,LabelStep_fr,ID_enigme,Reponse1,
+          select(ID_bloc,ID_step,Label_fr,ID_enigme,Reponse1,Help,
                  Info_admin,`Ecran Question` = Ecran)
 
         synthese_resultats <- actu_enigmes(values) %>%
@@ -95,7 +103,7 @@ EcranAdminServer <- function(id,values) {
         synthese <- synthese_questions %>%
           full_join(synthese_resultats,by = c("ID_bloc","ID_step","ID_enigme")) %>%
           full_join(synthese_indices,by = c("ID_bloc","ID_step","ID_enigme")) %>%
-          select(ID_bloc,ID_step,LabelStep_fr,ID_enigme,Info_admin,Reponse1,
+          select(ID_enigme,Label_fr,Info_admin,Help,Reponse1,
                  FL_Valid,`Ecran Question`,`Ecran Indices`)
 
         DT::datatable(synthese,
@@ -167,6 +175,10 @@ EcranAdminServer <- function(id,values) {
         values$nb_mails_send <- as.numeric(input$nvx_mails_send)
         updateTextInput(session,"nvx_mails_send",value = "")
       })
+      # Fin des scans
+      observeEvent(input$active_fin_scans,{
+        values$active_fin_scans <- input$active_fin_scans
+      })
 
       # Gestion de l'envois de mails (timer de l'escape room)
       # Que dans l'écran de listing de scan
@@ -180,16 +192,13 @@ EcranAdminServer <- function(id,values) {
       })
 
       observe({
-        invalidateLater(5000, session)
-        values$db_scans <- load_db_scans(values$id_drive)
-      })
-
-      observe({
         invalidateLater(1000*5, session)
         isolate({
           heure_fin <- as.numeric(input$heure_fin)
           minute_fin <- as.numeric(input$minute_fin)
           nb_secondes_restant <- temps_restant(heure_fin,minute_fin)$total_secondes
+
+          if (nb_secondes_restant <= 0) nb_secondes_restant <- 1
 
           values$nb_secondes_restant <- nb_secondes_restant
 
@@ -221,6 +230,50 @@ EcranAdminServer <- function(id,values) {
           # }
         })
       })
+
+      # 1) Manifest des sons (nom & url)
+      manifest <- reactive({
+        if (!dir.exists("www/sfx")) return(tibble::tibble(name = character(), url = character()))
+        files <- list.files("www/sfx", pattern = "\\.(mp3|wav|ogg)$", full.names = FALSE)
+        tibble::tibble(
+          name = tools::file_path_sans_ext(files),
+          url  = file.path("sfx", files)   # servi depuis www/sfx/…
+        ) |> dplyr::arrange(name)
+      })
+
+      # 2) Filtre par recherche
+      filtered <- reactive({
+        q <- trimws(tolower(input$q %||% ""))
+        mf <- manifest()
+        if (q == "") mf else dplyr::filter(mf, grepl(q, tolower(name), fixed = TRUE))
+      })
+
+      # 3) Grille de boutons
+      ns <- session$ns
+      output$btn_grid <- renderUI({
+        mf <- filtered()
+        if (nrow(mf) == 0) return(div(em("Aucun son…")))
+        lapply(seq_len(nrow(mf)), function(i){
+          nm <- mf$name[i]
+          actionButton(ns(paste0("snd_", nm)), label = nm,class = "btn")
+        })
+      })
+
+      # 4) Observe tous les boutons → pousse un signal réactif global
+      observe({
+        mf <- manifest()
+        lapply(mf$name, function(nm){
+          btn_id <- paste0("snd_", nm)
+          observeEvent(input[[btn_id]], {
+            # Signal “jouer tel son” envoyé aux autres modules
+            values$play_sound <- list(
+              name = nm,
+              url  = file.path("sfx", paste0(nm, ".mp3")),  # par défaut mp3
+              ts   = Sys.time()                              # horodatage pour forcer le changement
+            )
+          }, ignoreInit = TRUE)
+        })
+      })
     }
   )
 }
@@ -237,12 +290,10 @@ EcranAdminUI <- function(id) {
   tagList(
     # style_global(),
     style_admin_theme(),
-    fluidRow(
-      column(10,div(class = "card center_text",h1("Gestion de l'escape room"))),
-      column(2,div(class = "card center_text",
-                   radioButtons(ns('language'), choices = c("fr","nl"),
-                                 label="Choisir la langue",inline=T)))
-    ),
+    # fluidRow(
+    #   column(7,div(class = "card center_text",h1("Gestion de l'escape room"))),
+    #
+    # ),
     fluidRow(
       column(8,
         div(class = "card",
@@ -250,25 +301,25 @@ EcranAdminUI <- function(id) {
             actionButton(ns("reboot"), "Reboot"),
             actionButton(ns("avancer"), "Avancer d'une étape"),
             actionButton(ns("reculer"), "Reculer d'une étape"),
-            DT::dataTableOutput(ns("synthese_admin")),
-            br(),
-            fluidRow(
-              column(3,textInput(ns("help_texte"),label="Texte d'aide")),
-              column(3,textInput(ns("help_ecran"),label="Écran")),
-              column(3,actionButton(ns("help_send"), "Envoyer message aide"))
-            )
+            DT::dataTableOutput(ns("synthese_admin"))
         )
       ),
       column(4,
-             div(class = "card",
-                 h2("Heure de fin de l'escape room"),
-                 fluidRow(
-                   column(width = 6,textInput(ns("heure_fin"),label = "Heure")),
-                   column(width = 6,textInput(ns("minute_fin"),label = "Minute"))
-                 )
-             ),
+             fluidRow(
+               column(width = 6,
+                      div(class = "card",
+                          fluidRow(
+                            column(width = 6,textInput(ns("heure_fin"),label = "Heure de fin")),
+                            column(width = 6,textInput(ns("minute_fin"),label = "Minute")),
+                          ))),
+               column(width = 6,
+                      div(class = "card",
+                          radioButtons(ns('language'), choices = c("fr","nl"),
+                                       label="Choisir la langue",inline=T)))
+               ),
              div(class = "card",
                  h2("Progression des scans et mails"),
+                 actionButton(ns("maj_scans"), "Recharger les scans"),
                  div(class = "panel-title",textOutput(ns("nb_mails_load"))),
                  div(class = "panel-title",textOutput(ns("nb_mails_send"))),
                  div(class = "panel-title",textOutput(ns("nb_scans"))),
@@ -276,6 +327,8 @@ EcranAdminUI <- function(id) {
                                 label = "Activer le chargement de mails",value = F),
                  materialSwitch(ns("active_mails_send"), status = "danger",
                                 label = "Activer l'envoi de mails",value = F),
+                 materialSwitch(ns("active_fin_scans"), status = "info",
+                                label = "Activer la fin des scans",value = F),
                  fluidRow(
                    column(width = 8,textInput(ns("nvx_mails_load"),
                                                      label = NULL,
@@ -293,6 +346,11 @@ EcranAdminUI <- function(id) {
              ),
              div(class = "card",
                  fluidRow(
+                   column(3,textInput(ns("help_texte"),label="Texte d'aide")),
+                   column(3,textInput(ns("help_ecran"),label="Écran")),
+                   column(3,actionButton(ns("help_send"), "Envoyer message aide"))
+                 ),
+                 fluidRow(
                    column(6,textInput(ns("message_text"),
                                       label = "Envoyer un message dans SYNAPSE")),
                    column(6,actionButton(ns("send_message_text"),"Envoyer"))
@@ -303,6 +361,12 @@ EcranAdminUI <- function(id) {
                    column(6,actionButton(ns("send_message_vocal"),"Envoyer"))
                  )
              )
+      )
+    ),
+    fluidRow(
+      div(class = "card",
+          textInput(ns("q"), NULL, placeholder = "Filtrer les sons…", width = "100%"),
+          uiOutput(ns("btn_grid"))
       )
     )
   )

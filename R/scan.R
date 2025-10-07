@@ -163,6 +163,10 @@ EcranScanServer <- function(id,values,local) {
         })
         html_out <- paste0("<table style='border-collapse:separate; border-spacing: 0 2px;'><tbody>", paste(table_rows, collapse=""), "</tbody></table>")
 
+        if (!is.null(values$active_fin_scans) && values$active_fin_scans){
+          html_out  <- "<h2 style='font-size: 55px;'> Protocole de perçage d'urgence détecté </h2>"
+        }
+
         return(HTML(html_out))
       })
 
@@ -208,6 +212,11 @@ EcranScanServer <- function(id,values,local) {
           output$timing_scan <- renderText({
 
             timing <- temps_restant(values$heure_fin,values$minute_fin)
+            if (timing$heures == 23){
+              timing$heures <- 0
+              timing$minutes <- 0
+              timing$secondes <- 0
+            }
 
             paste0(timing$heures,"H ",timing$minutes,"M ",timing$secondes,"S")
           })
