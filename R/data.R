@@ -7,9 +7,9 @@
 load_db_enigmes <- function(id_drive){
   googlesheets4::read_sheet(id_drive,sheet = "db_enigmes") %>%
     mutate(timer = as.numeric(timer),
-           Reponse1 = unlist(map(Reponse1, ~ ifelse(length(.x),.x,NA))),
-           Reponse2 = unlist(map(Reponse2, ~ ifelse(length(.x),.x,NA))),
-           Reponse3 = unlist(map(Reponse3, ~ ifelse(length(.x),.x,NA))),
+           Reponse1 = unlist(purrr::map(Reponse1, ~ ifelse(length(.x),.x,NA))),
+           Reponse2 = unlist(purrr::map(Reponse2, ~ ifelse(length(.x),.x,NA))),
+           Reponse3 = unlist(purrr::map(Reponse3, ~ ifelse(length(.x),.x,NA))),
            )
 }
 

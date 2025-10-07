@@ -136,6 +136,7 @@ style_list <- function(color_dark,color_light){
         color: ",color_dark,";
         letter-spacing: 0.08em;
         font-size: 1.25em;
+        font-size: 1.75em;
         font-weight: bold;
         margin-bottom: 5px;
       }

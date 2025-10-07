@@ -12,7 +12,7 @@ library(text2speech)
 library(googleLanguageR)
 library(later)
 library(sortable)
-library(escapeRoom)
+# library(escapeRoom)
 
 source(".env.R")
 
@@ -49,7 +49,8 @@ values <- reactiveValues(db_enigmes=load_db_enigmes(id_drive),
                          text_AI = "",
                          id_drive = id_drive,
                          id_chatgpt = id_chatgpt,
-                         nb_mails_tot = 11825551,
+                         nb_citoyens_tot = 11825551,
+                         nb_citoyens_act = 11825551,
                          # nb_mails_per_scan = 11825551 /
                            # nrow(load_db_scans(id_drive) %>%
                                   # filter(CD_admin == "init")),
@@ -138,7 +139,7 @@ shinyServer(function(input, output, session) {
       EcranSourceUI("EcranSource",values,local)
   })
 
-  output$source <- renderUI({
+  output$sound <- renderUI({
     if (local$userType == "X")
       EcranSoundUI("EcranSound")
   })

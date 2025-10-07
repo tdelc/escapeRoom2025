@@ -134,7 +134,6 @@ EcranScanServer <- function(id,values,local) {
               # scan_id(NULL)
               # valid_scan <- FALSE
               local$userEcran <- ""
-              values$nb_mails_tot <- values$nb_mails_tot - values$nb_mails_per_scan
             }
           }
         })
@@ -169,10 +168,10 @@ EcranScanServer <- function(id,values,local) {
 
       # Gestion des mails et des scans
       output$nb_mails_load <- renderText({
-        pc_mails_load <- round(100*values$nb_mails_load/values$nb_mails_tot)
+        pc_mails_load <- round(100*values$nb_mails_load/values$nb_citoyens_act)
         paste0(
           format(values$nb_mails_load, big.mark = " ", scientific = F), " / ",
-          format(values$nb_mails_tot, big.mark = " ", scientific = F), " (",
+          format(values$nb_citoyens_act, big.mark = " ", scientific = F), " (",
           pc_mails_load,"%)")
       })
 

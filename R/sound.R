@@ -43,7 +43,6 @@ EcranSoundServer <- function(id, values,
     manifest <- reactive({
       if (!dir.exists(dir)) return(tibble::tibble(name = character(), url = character()))
       files <- list.files(dir, pattern = pattern, full.names = FALSE)
-      print(files)
       tibble::tibble(
         name = tools::file_path_sans_ext(files),
         url  = file.path("sfx", files)   # servi depuis www/sfx/…

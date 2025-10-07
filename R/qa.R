@@ -170,6 +170,16 @@ EcranQRUI <- function(id,values,local) {
       tagList(
         # style_global(),
         style_escape_theme(),
+        useShinyjs(),
+
+        # tags$script(HTML(sprintf("
+        #                 $(document).on('keypress', '#%s', function(e) {
+        #                   if(e.which == 13) {  // 13 = touche entrée
+        #                     e.preventDefault();
+        #                     $('#%s').click();  // simule un clic sur le bouton envoyer
+        #                   }
+        #                 });
+        #                 ", ns("reponse"), ns("send")))),
 
         # gl_talk_shinyUI(ns("talk")),
 

@@ -116,12 +116,12 @@ EcranAdminServer <- function(id,values) {
 
       # Gestion des mails et des scans
       output$nb_mails_load <- renderText({
-        pc_mails_load <- round(100*values$nb_mails_load/values$nb_mails_tot)
+        pc_mails_load <- round(100*values$nb_mails_load/values$nb_citoyens_act)
         if (values$active_mails_load) check_mails_load <- " (active)"
         else check_mails_load <- ""
         paste0("Avancement du chargement des mails : ",
           format(values$nb_mails_load, big.mark = " ", scientific = F), " / ",
-          format(values$nb_mails_tot, big.mark = " ", scientific = F), " (",
+          format(values$nb_citoyens_act, big.mark = " ", scientific = F), " (",
           pc_mails_load,"%) ",check_mails_load)
       })
 
@@ -141,6 +141,9 @@ EcranAdminServer <- function(id,values) {
         actu_scans <- info_scans(values) %>%
           select(ID,Texte) %>%
           left_join(actu_scans(values) %>% select(ID,FL_Valid))
+
+        values$nb_citoyens_act <- values$nb_citoyens_tot -
+          values$nb_mails_per_scan * sum(actu_scans$FL_Valid)
 
         paste0("Documents manquants à scanner : ",
           sum(actu_scans$FL_Valid), " / ",
@@ -176,10 +179,10 @@ EcranAdminServer <- function(id,values) {
         values$minute_fin <- as.numeric(input$minute_fin)
       })
 
-      # observe({
-      #   invalidateLater(5000, session)
-      #   values$db_scans <- load_db_scans(values$id_drive)
-      # })
+      observe({
+        invalidateLater(5000, session)
+        values$db_scans <- load_db_scans(values$id_drive)
+      })
 
       observe({
         invalidateLater(1000*5, session)
@@ -192,7 +195,7 @@ EcranAdminServer <- function(id,values) {
 
           nb_reload_restant <- nb_secondes_restant / 5
 
-          nb_mails_load <- round(values$nb_mails_tot/nb_reload_restant)
+          nb_mails_load <- round(values$nb_citoyens_act/nb_reload_restant)
           nb_mails_send <- round(values$nb_mails_load/nb_reload_restant)
 
           if (!values$active_mails_load) nb_mails_load <- 0
@@ -201,21 +204,21 @@ EcranAdminServer <- function(id,values) {
           values$nb_mails_load <- values$nb_mails_load + nb_mails_load
           values$nb_mails_load <- values$nb_mails_load - nb_mails_send
           values$nb_mails_send <- values$nb_mails_send + nb_mails_send
-          values$nb_mails_tot <- values$nb_mails_tot - nb_mails_send
+          # values$nb_mails_tot <- values$nb_mails_tot - nb_mails_send
 
-          if (values$nb_mails_load > values$nb_mails_tot){
-            values$nb_mails_load <- values$nb_mails_tot
+          if (values$nb_mails_load > values$nb_citoyens_act){
+            values$nb_mails_load <- values$nb_citoyens_act
             values$active_mails_load <- F
           }
           if (values$nb_mails_load < 0){
             values$nb_mails_load <- 0
             values$active_mails_send <- F
           }
-          if (values$nb_mails_tot < 0){
-            values$nb_mails_tot <- 0
-            values$active_mails_load <- F
-            values$active_mails_send <- F
-          }
+          # if (values$nb_citoyens_act < 0){
+          #   values$nb_mails_tot <- 0
+          #   values$active_mails_load <- F
+          #   values$active_mails_send <- F
+          # }
         })
       })
     }
